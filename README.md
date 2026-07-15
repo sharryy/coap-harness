@@ -18,15 +18,3 @@ complementary axes:
 | `freecoap-harness/` | libcoap-client → FreeCoAP-server exchange under Kleener |
 | `diff.sh` | orchestrator: runs one experiment on both implementations and cross-checks their recorded responses |
 | `security/` | native ASan proof-of-concept reproducers for the libcoap memory-safety findings |
-
-## External dependencies (not vendored here)
-
-- **Kleener** (the symbolic-execution runtime + the CoAP recording monitors) — the
-  harnesses are driven by it; pin the branch/commit that provides the CoAP monitors.
-- **SUTs** — libcoap `v4.3.1` and `v4.3.5`, FreeCoAP (`keith-cullen/FreeCoAP`), plus
-  ASan-instrumented libcoap builds for `security/`.
-- **smt-cross-checker** — the offline SMT response comparator (to be consolidated
-  under the Kleener org).
-
-> First push is a rough snapshot; structure and docs will be cleaned up and the
-> external dependencies wired in afterwards.

@@ -1,7 +1,4 @@
-/* Stubs for libc functions that KLEE's POSIX runtime doesn't model.
- * Each one returns the "no/failure" branch that lets libcoap fall
- * through to a safe default path. */
-
+/* Stubs for libc functions KLEE's POSIX runtime doesn't model. */
 #include <bits/types/clockid_t.h>
 #include <errno.h>
 #include <ifaddrs.h>

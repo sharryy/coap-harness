@@ -1,16 +1,14 @@
+/* libcoap standalone client<->server harness for KLEE differential experiments. */
 #include <assert.h>
 #include <coap3/coap.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h> /* TEMP DIAGNOSTIC: gettimeofday for the wall-clock probe */
+#include <sys/time.h>
 #include <unistd.h>
 
-/* Compatibility shims so the same source builds against libcoap 4.3.1
- * (which uses syslog-style log levels and lacks the SAFE_REQUEST_HANDLER
- * flag) and against 4.3.5 (which renamed the log levels and added the
- * flag). 4.3.5 defines all three first, so these guards are no-ops there. */
+/* compat shims: builds against libcoap 4.3.1 and 4.3.5 */
 #ifndef COAP_LOG_INFO
 #define COAP_LOG_INFO LOG_INFO
 #endif
@@ -23,9 +21,7 @@
 
 static int response_received_flag = 0;
 
-/* Finalize hook for the Kleener socket model's bounded-exchange check. Weak
- * no-op so the native build (which doesn't link the model) still resolves it;
- * the model provides the strong definition under KLEE. */
+/* weak no-op for native builds; socket model provides strong def under KLEE */
 __attribute__((weak)) void coap_exchange_finalize(void) {}
 
 static void hnd_get_test(coap_resource_t *resource, coap_session_t *session,
@@ -47,20 +43,10 @@ static coap_response_t client_response_handler(coap_session_t *session,
   coap_show_pdu(COAP_LOG_INFO, received);
   response_received_flag = 1;
 
-  /* Experiment 11 (token-spoof, RFC 7252 §5.3.2): the token-spoof monitor
-   * corrupts this response's token on the wire while keeping its MID. If
-   * libcoap delivered it to us anyway, it matched the piggybacked ACK by MID
-   * alone and never verified the token — a response-spoofing gap. The token
-   * we actually sent is the 4-byte DE AD BE EF below. Gated on the experiment
-   * id so the symbolic-token experiment (7) is unaffected. */
+  /* exp 11/14: token-spoof checks (RFC 7252 5.3.2); exp 15: control */
   {
     const char *exp = getenv("KLEE_SYMBOLIC_EXPERIMENT");
     int e = (exp != NULL) ? atoi(exp) : 0;
-    /* exp 11 = piggybacked-ACK token spoof; exp 14 = separate-response token
-     * spoof. Both corrupt the response token; if libcoap delivered it to us,
-     * it did not verify the token before delivery (RFC 7252 §5.3.2). exp 15
-     * is the separate-response control (token kept) — no assert, we only need
-     * to see whether delivery happens. */
     if (e == 11 || e == 14 || e == 15) {
       static const uint8_t sent_token[4] = {0xDE, 0xAD, 0xBE, 0xEF};
       coap_bin_const_t tok = coap_pdu_get_token(received);
@@ -75,23 +61,14 @@ static coap_response_t client_response_handler(coap_session_t *session,
       fprintf(stderr, "\n");
       int mismatch = (tok.length != sizeof(sent_token)) ||
                      (memcmp(tok.s, sent_token, sizeof(sent_token)) != 0);
-      /* Only a FALSE MATCH is a violation: libcoap bound this response to a
-       * real outstanding request (sent != NULL) yet the token differs. With
-       * sent==NULL libcoap asserts no correlation (app must match by token),
-       * so that is not flagged. exp 15 is the control. */
+      /* violation only if matched (sent != NULL) but token differs */
       if (e != 15)
         assert(!(sent != NULL && mismatch) &&
                "client delivered a response as MATCHED to a request "
                "(sent != NULL) whose token does not match (RFC 7252 "
                "5.3.2; piggybacked-ACK MID-only match, spoofable)");
     }
-    /* Experiment 17 (mid-spoof, dual of exp 11): the monitor flips the
-     * response's Message ID while keeping the token correct. We observe
-     * whether libcoap discards a wrong-MID response. Reaching this handler
-     * at all means libcoap delivered it; sent != NULL would mean it matched
-     * a request despite the wrong MID (a second defect). A MID-keyed client
-     * drops the datagram and this handler never fires for exp 17 — that
-     * absence (no log line below) is the expected, conformant outcome. */
+    /* exp 17: mid-spoof (dual of exp 11); wrong-MID response should be dropped */
     if (e == 17) {
       fprintf(stderr,
               "[harness] exp17: DELIVERED wrong-MID response  sent=%s type=%d "
@@ -190,9 +167,7 @@ int main(void) {
     return 1;
   }
 
-  /* Carry a 4-byte token (added before options, per libcoap PDU build order)
-   * so the token-match monitor (RFC 7252 §5.3.1) has a token to corrupt and
-   * verify the server echoes it back in the response. */
+  /* 4-byte token for the token-match monitor (RFC 7252 5.3.1) */
   coap_add_token(request, 4, (const uint8_t *)"\xDE\xAD\xBE\xEF");
 
   coap_add_option(request, COAP_OPTION_URI_PATH, 4, (const uint8_t *)"test");
@@ -202,26 +177,13 @@ int main(void) {
 
   fprintf(stderr, "[harness] entering the IO loop\n");
 
-  /* Bounded exchange: give the SUT a fixed window to respond, then finalize.
-   * Replaces the old open-ended spin so a (correct or buggy) drop no longer
-   * loops until KLEE's max-time. 16 cycles is ample for one request/response;
-   * we break early once a response arrives. coap_exchange_finalize() then lets
-   * the model fire if a requirement demanded a response that never came. */
-  /* ===== TEMP DIAGNOSTIC (remove after checking) =========================
-   * Claim under test: under KLEE, real host wall-clock advances past the 2 s
-   * CoAP ACK timeout DURING this loop (because KLEE interprets libcoap slowly
-   * and gettimeofday is NOT modeled), so the CON client retransmits. Print,
-   * each cycle, elapsed time as (a) raw host wall-clock and (b) libcoap's own
-   * coap_ticks clock. If these climb past ~2000 ms, that's the retransmit
-   * window. fflush so the lines survive KLEE state termination. */
+  /* bounded exchange: fixed window to respond, then finalize */
   struct timeval tv_start;
   gettimeofday(&tv_start, NULL);
-  
+
   coap_tick_t ct_start;
   coap_ticks(&ct_start);
-  /* ======================================================================= */
   for (int cycle = 0; cycle < 16 && !response_received_flag; cycle++) {
-    /* --- TEMP DIAGNOSTIC --- */
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
     coap_tick_t ct_now;
@@ -235,7 +197,6 @@ int main(void) {
             "(ACK_TIMEOUT=2000 ms)\n",
             cycle, wall_ms, coap_ms);
     fflush(stderr);
-    /* ----------------------- */
     coap_io_process(server_ctx, COAP_IO_NO_WAIT);
     coap_io_process(client_ctx, COAP_IO_NO_WAIT);
   }

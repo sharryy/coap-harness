@@ -1,19 +1,4 @@
-/*
- * FreeCoAP standalone client<->server exchange harness (no DTLS).
- *
- * Named to match the libcoap harness (libcoap-standalone.c): it performs a
- * genuine CoAP request/response over loopback UDP:5683, so the traffic is
- * visible to tcpdump (e.g. `sudo tcpdump -i lo -n udp port 5683`).
- *
- * Native demo/validation binary (not a KLEE target — real sockets + fork do
- * not symbolically execute usefully).
- *
- * FreeCoAP's coap_server_run() blocks (while(1) select loop), unlike libcoap's
- * non-blocking IO, so the two roles cannot share one loop. We fork:
- *   child  -> coap_server_create() + coap_server_run()   (the SUT server)
- *   parent -> coap_client_create() + coap_client_exchange() (the client)
- * After the exchange the parent tears the child down.
- */
+/* FreeCoAP standalone client<->server exchange harness (no DTLS); native demo, forks server+client. */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +22,7 @@
 #define LARGE_BUF_NUM   32
 #define LARGE_BUF_LEN   8192
 
-/* Server-side request handler: answer any GET with 2.05 Content + payload. */
+/* GET -> 2.05 Content + payload */
 static int exchange_handle(coap_server_trans_t *trans, coap_msg_t *req,
                            coap_msg_t *resp)
 {
@@ -70,7 +55,7 @@ static int run_server(void)
         return 1;
     }
     fprintf(stderr, "[server] listening on %s:%s (UDP, no DTLS)\n", HOST, PORT);
-    coap_server_run(&server);          /* blocks until the process is killed */
+    coap_server_run(&server);
     coap_server_destroy(&server);
     return 0;
 }
@@ -145,15 +130,13 @@ int main(void)
 
     if (pid == 0)
     {
-        /* child: the server. Its own allocator is inherited via fork. */
         _exit(run_server());
     }
 
-    /* parent: the client. Give the server a moment to bind the socket. */
+    /* parent: client. Give the server a moment to bind. */
     usleep(300 * 1000);
     status = run_client();
 
-    /* tear the server down */
     kill(pid, SIGTERM);
     waitpid(pid, NULL, 0);
 

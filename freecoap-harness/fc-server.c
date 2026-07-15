@@ -1,9 +1,4 @@
-/* FreeCoAP server module (the SUT for the libcoap->FreeCoAP differential run).
- *
- * Wraps FreeCoAP's server so the orchestrator can create it and drive exactly
- * one accept/recv/handle/respond iteration per call, with no blocking loop and
- * no fork. Only FreeCoAP headers are included here (they collide with libcoap's,
- * hence the separate TU). */
+/* FreeCoAP server module (the SUT for the libcoap->FreeCoAP differential run). */
 
 #include <stdio.h>
 #include <string.h>
@@ -23,12 +18,11 @@
 #define LARGE_BUF_NUM   32
 #define LARGE_BUF_LEN   8192
 
-/* Exposed by the one-line test hook appended to FreeCoAP's coap_server.c. */
 extern int coap_server_exchange_once(coap_server_t *server);
 
 static coap_server_t g_server;
 
-/* Answer any GET with 2.05 Content + a short payload. Any other method -> 5.01. */
+/* GET -> 2.05 Content; other methods -> 5.01 */
 static int exchange_handle(coap_server_trans_t *trans, coap_msg_t *req,
                            coap_msg_t *resp)
 {

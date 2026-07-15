@@ -1,11 +1,4 @@
-/*libcoap CLIENT module — the driver for BOTH harnesses.
- *
- * This is the same client the libcoap-harness uses (ported from
- * libcoap-standalone.c's client half): it sends a CON GET /test with a 4-byte
- * token and processes the response non-blocking. Using the identical libcoap
- * client against both servers means the only variable in the differential run
- * is the server implementation (libcoap vs FreeCoAP). Only libcoap headers are
- * included here. */
+/* libcoap client module — the driver for both harnesses (CON GET /test, 4-byte token). */
 
 #include <netinet/in.h>
 #include <stdio.h>

