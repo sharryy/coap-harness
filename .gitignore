@@ -1,0 +1,42 @@
+# --- whitelist: ignore everything at top level, then re-include only the
+#     coap-harness content (this working dir also holds unrelated experiments,
+#     the 200MB repos/ SUT clones, and the cross-checker, none of which belong
+#     in this repo). ---
+/*
+!/.gitignore
+!/README.md
+!/diff.sh
+!/libcoap-harness/
+!/freecoap-harness/
+!/security/
+
+# --- inside the included dirs, never track build output, KLEE run artifacts,
+#     logs, or binaries (regenerable; not meant to be pushed) ---
+*.bc
+*.o
+*.a
+*.so
+*.log
+*.txt
+logs/
+*.smt2
+*.resp
+*.ktest
+*.err
+*.out
+klee-out-*/
+klee-last
+klee-diff-*/
+klee-dbg-*/
+klee-exp-*/
+klee-*-check/
+.venv/
+
+# harness binaries (no extension)
+libcoap-harness/libcoap-standalone
+freecoap-harness/freecoap-standalone
+security/poc-bug-a
+security/poc-bug-b
+security/poc-bug-b-groom
+security/proxy-uaf-repro
+security/token-spoof-repro

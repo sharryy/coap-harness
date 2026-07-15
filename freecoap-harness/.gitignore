@@ -1,0 +1,27 @@
+# Build artifacts (regenerate with fc-build.sh / make)
+*.bc
+bc/
+freecoap-linked.bc
+# Compiled native binaries (regenerate with `make`)
+freecoap-standalone
+
+# KLEE / Kleener experiment output.
+# fc-build + the klee runs drop one directory per run (klee-out-*, plus any
+# ad-hoc rt-confirm-*/ or *-exp-*/ output dirs). Ignore them by the artefact
+# files KLEE writes inside AND by the common directory-name patterns, so no
+# run output is ever committed regardless of how the run was tagged.
+*.ktest
+*.kquery
+*.err
+*.early
+run.stats
+run.istats
+assembly.ll
+messages.txt
+warnings.txt
+info
+klee-last
+klee-out-*/
+rt-confirm-*/
+exp-*/
+*-exp-*/

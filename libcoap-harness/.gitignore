@@ -1,0 +1,46 @@
+# Build artifacts (regenerate with `make`)
+*.bc
+libcoap-standalone
+libcoap-standalone-431
+# Compiled native reproducers / harness binaries (regenerate with `make`)
+token-spoof-repro
+token-spoof-repro-431
+token-spoof-repro-dbg
+token-spoof-repro-postfix
+
+# KLEE / Kleener experiment output.
+# The runner writes one directory per experiment (e.g. exp-1-version,
+# v431-exp-1-version). Ignore them both by the artefact files KLEE drops
+# inside and by the common directory-name patterns, so no run output is
+# ever committed regardless of how it was tagged.
+*.ktest
+*.kquery
+*.err
+*.early
+run.stats
+run.istats
+assembly.ll
+messages.txt
+warnings.txt
+info
+klee-last
+klee-out-*/
+exp-*/
+*-exp-*/
+*-parse/
+smoke*/
+byte-test/
+disp-*/
+proxy-uaf-repro
+pu-435
+pu-dev
+proxy-uaf-repro-dev
+
+# Proxy UAF per-bug PoC binaries (regenerate with `make poc-bug-a` / `poc-bug-b`).
+# Source (.c) and the saved ASan logs (.txt) ARE tracked; only the binaries are not.
+poc-bug-a
+poc-bug-b
+poc-bug-a-435b
+poc-bug-b-435b
+poc-bug-a-dev
+poc-bug-b-dev
