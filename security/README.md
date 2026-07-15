@@ -5,7 +5,7 @@ bugs found in libcoap during this work. All are for **fixed / disclosed** issues
 
 | PoC | Bug | Status |
 |-----|-----|--------|
-| `proxy-uaf-repro.c` | Proxy association cleanup use-after-free (combined A+B) | fixed; MITRE-filed |
+| `proxy-uaf-repro.c` | Proxy association cleanup use-after-free (combined A+B) | fixed |
 | `poc-bug-a.c` | Bug A — `coap_proxy_remove_association` removes only the first matching req entry | fixed in v4.3.5c |
 | `poc-bug-b.c` | Bug B — proxy cleanup gated on an optional event callback → dangling incoming session | fixed on develop |
 | `poc-bug-b-groom.c` | Bug B via the idle-reap free path (heap-groomable variant) | — |
