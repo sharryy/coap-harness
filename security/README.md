@@ -1,4 +1,4 @@
-# libcoap memory-safety reproducers
+# Memory-safety reproducers for libcoap
 
 Native, deterministic reproducers for the memory-safety bugs found in libcoap
 during this work. Each one builds against an AddressSanitizer libcoap and prints a
