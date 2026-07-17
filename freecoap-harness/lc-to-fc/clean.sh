@@ -23,7 +23,7 @@ if [ -L klee-last ] || [ -e klee-last ]; then
 fi
 
 # 3) build products (regenerate with fc-build.sh / make)
-for f in freecoap-linked.bc bc freecoap-standalone; do
+for f in freecoap-linked.bc bc; do
     if [ -e "$f" ]; then
         rm -rf "$f"
         echo "removed $f"

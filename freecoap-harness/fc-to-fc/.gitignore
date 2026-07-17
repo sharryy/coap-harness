@@ -1,0 +1,3 @@
+# Compiled native binary (regenerate with `make`)
+freecoap-standalone
+*.o

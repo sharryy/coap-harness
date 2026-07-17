@@ -1,7 +1,7 @@
 # libcoap-client -> FreeCoAP-server differential harness (KLEE / Kleener).
 #
-# The native forked demo (freecoap-standalone) is retired — we drive the actual
-# lc->fc exchange under Kleener instead:
+# This directory is only the lc->fc exchange, driven under Kleener. The native
+# FreeCoAP client<->server round-trip lives in ../fc-to-fc.
 #   build : ./fc-build.sh links the libcoap client + FreeCoAP server bitcode into
 #           freecoap-linked.bc.
 #   run   : KLEE interprets it with the CoAP socket model (PROTOCOL=CoAP) shuttling

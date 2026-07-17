@@ -2,8 +2,6 @@
 *.bc
 bc/
 freecoap-linked.bc
-# Compiled native binaries (regenerate with `make`)
-freecoap-standalone
 
 # KLEE / Kleener experiment output.
 # fc-build + the klee runs drop one directory per run (klee-out-*, plus any

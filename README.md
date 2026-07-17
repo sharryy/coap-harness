@@ -1,4 +1,4 @@
-# coap-harness: CoAP testing harnesses for Kleener
+# CoAP testing harnesses for Kleener
 
 Testing harnesses for CoAP implementations, built for two related jobs:
 
@@ -22,7 +22,8 @@ walk-through of the older per-requirement conformance monitors, read
 | Path | What it is |
 |------|-----------|
 | `libcoap-harness/` | A single-process libcoap client+server driver. This is the base SUT for the differential runs, and also the target for the per-requirement conformance monitors. |
-| `freecoap-harness/` | The same libcoap client wired to a FreeCoAP server, so one client exercises two independent stacks. |
+| `freecoap-harness/lc-to-fc/` | The same libcoap client wired to a FreeCoAP server, so one client exercises two independent stacks. This is the differential control side that `diff.sh` drives. |
+| `freecoap-harness/fc-to-fc/` | A native FreeCoAP client-and-server round-trip, kept as a standalone sanity demo (no KLEE). |
 | `diff.sh` | Runs one experiment on both sides and hands the recorded responses to the cross-checker. |
 | `security/` | Native ASan reproducers for the libcoap memory-safety findings. |
 | `Makefile` | `make clean` / `make clean-logs` to wipe run artifacts. |
@@ -83,7 +84,7 @@ executes:
 `make libcoap-linked.bc` in `libcoap-harness/` does steps 2 and 3 and links against
 the 4.3.5 bitcode. The 4.3.1 build is the same command with `LIBCOAP_DIR` pointed at
 the 4.3.1 source tree, saved as `libcoap-431-linked.bc`.
-`freecoap-harness/fc-build.sh` does the equivalent for the FreeCoAP side.
+`freecoap-harness/lc-to-fc/fc-build.sh` does the equivalent for the FreeCoAP side.
 
 ## Running an experiment
 
@@ -132,10 +133,10 @@ The pieces generalise to any CoAP server you can compile to bitcode:
 1. Build the server to whole-program bitcode with wllvm and `extract-bc`.
 2. Write a harness that drives it. It has to obey the Kleener execution model: one
    process, no forking and no blocking loop, a single valid CoAP request/response
-   exchange, and the small hooks the socket model expects. `freecoap-harness/` is the
-   worked example of adapting a server whose own API wanted to block. Reuse the
-   libcoap client (`lc-client.c`) so the client is a fixed variable and only the
-   server changes.
+   exchange, and the small hooks the socket model expects. `freecoap-harness/lc-to-fc/`
+   is the worked example of adapting a server whose own API wanted to block. Reuse the
+   libcoap client (`lc-to-fc/lc-client.c`) so the client is a fixed variable and only
+   the server changes.
 3. Compile the harness to bitcode and `llvm-link` it with the server bitcode and the
    override stubs.
 4. Add the new side to `diff.sh` as either the base or the control, and run.

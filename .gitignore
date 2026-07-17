@@ -35,7 +35,7 @@ klee-*-check/
 
 # harness binaries (no extension)
 libcoap-harness/libcoap-standalone
-freecoap-harness/freecoap-standalone
+freecoap-harness/fc-to-fc/freecoap-standalone
 security/poc-bug-a
 security/poc-bug-b
 security/poc-bug-b-groom

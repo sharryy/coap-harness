@@ -16,7 +16,7 @@ EXTRA="${EXTRA:---max-memory=4000}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBCOAP_HARNESS="$ROOT/libcoap-harness"
-FREECOAP_HARNESS="$ROOT/freecoap-harness"
+FREECOAP_HARNESS="$ROOT/freecoap-harness/lc-to-fc"
 CHECKER="$ROOT/tools/smt-cross-checker"
 BUILD_DIR="/home/shehryar/kleener-install/klee_build130stp_z3"
 
