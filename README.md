@@ -1,4 +1,4 @@
-# coap-harness
+# coap-harness: CoAP testing harnesses for Kleener
 
 Testing harnesses for CoAP implementations, built for two related jobs:
 
@@ -17,7 +17,7 @@ together, and how to point it at an implementation. If you just want a scripted
 walk-through of the older per-requirement conformance monitors, read
 [`libcoap-harness/DEMO.md`](libcoap-harness/DEMO.md) instead.
 
-## Layout
+## Repository layout
 
 | Path | What it is |
 |------|-----------|
@@ -27,7 +27,7 @@ walk-through of the older per-requirement conformance monitors, read
 | `security/` | Native ASan reproducers for the libcoap memory-safety findings. |
 | `Makefile` | `make clean` / `make clean-logs` to wipe run artifacts. |
 
-## What you need first
+## Prerequisites
 
 This repository holds the harnesses and the reproducers. It does **not** carry the
 symbolic-execution engine, the monitors, or the implementations under test. Those
@@ -65,7 +65,7 @@ A note on paths: `diff.sh` and the two Makefiles currently assume this tree live
 directory it rebuilds when you pass `BUILD=1`. If you work somewhere else, adjust
 those two spots.
 
-## How a differential run is built
+## How a differential run fits together
 
 Every run comes down to three bitcode ingredients linked into one module that KLEE
 executes:
@@ -125,7 +125,7 @@ Useful knobs, all environment variables read by `diff.sh`: `MAX_TIME` (KLEE time
 default `60s`), `LIBCOAP_BC` (which base bitcode), `TAG` (suffix for output dirs and
 the log), and `BUILD=1` (rebuild the Kleener runtime first).
 
-## Pointing it at another implementation
+## Adding another implementation
 
 The pieces generalise to any CoAP server you can compile to bitcode:
 
