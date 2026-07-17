@@ -144,6 +144,17 @@ The pieces generalise to any CoAP server you can compile to bitcode:
 The one part that does not come for free is deciding whether a server can be driven
 in a single non-blocking process at all. That is a design call, not a mechanical one.
 
+## Watching packets on the wire
+
+The differential runs execute under KLEE with an in-process socket model, so they
+never touch a real socket. The native builds do: `libcoap/`'s `make run-native` and
+`freecoap/`'s `make run` each do a real CoAP exchange on loopback `udp/5683`, which
+you can capture with tcpdump in another terminal:
+
+```sh
+sudo tcpdump -i lo -n udp port 5683
+```
+
 ## Cleaning up
 
 `make clean` from the repo root removes KLEE output directories and logs across the

@@ -142,6 +142,14 @@ make libcoap-standalone        # links against 4.3.5 .libs/libcoap-3-notls.a
 make libcoap-standalone-431    # links against 4.3.1
 ```
 
+To watch the packets on the wire, sniff loopback in one terminal and run the
+exchange in another:
+
+```bash
+sudo tcpdump -i lo -n udp port 5683    # terminal 1: capture
+make run-native                        # terminal 2: build + run libcoap-standalone
+```
+
 ---
 
 ## D. Expected result

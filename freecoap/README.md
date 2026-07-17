@@ -10,5 +10,12 @@ make        # build freecoap-standalone (links the FreeCoAP library sources)
 make run    # run the round-trip
 ```
 
+To watch the packets on the wire, sniff loopback in another terminal before
+`make run`:
+
+```sh
+sudo tcpdump -i lo -n udp port 5683
+```
+
 The libcoap-client to FreeCoAP-server harness that the differential runs use lives in
 [`../differential`](../differential).
