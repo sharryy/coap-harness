@@ -3,8 +3,7 @@
 
 # Remove diff-testing run artifacts: logs + KLEE output dirs.
 clean: clean-logs
-	rm -rf klee-diff-* klee-dbg-* klee-exp-* klee-*-check
-	rm -rf libcoap-harness/klee-* freecoap-harness/klee-*
+	rm -rf libcoap/klee-* freecoap/klee-* differential/klee-*
 
 clean-logs:
-	rm -f *.log
+	rm -f *.log differential/*.log

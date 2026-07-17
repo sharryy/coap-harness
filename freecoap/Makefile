@@ -4,7 +4,7 @@
 # one program and runs one CoAP exchange over loopback, so you can confirm the
 # FreeCoAP stack works end to end and sniff it with tcpdump on udp/5683.
 # This is native only; it does not run under KLEE. The lc->fc KLEE harness is in
-# ../lc-to-fc.
+# ../differential.
 
 FCDIR  ?= $(HOME)/project/kleener-experiments/repos/FreeCoAP
 FC_INC := $(FCDIR)/lib/include

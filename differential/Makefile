@@ -1,13 +1,14 @@
 # libcoap-client -> FreeCoAP-server differential harness (KLEE / Kleener).
 #
-# This directory is only the lc->fc exchange, driven under Kleener. The native
-# FreeCoAP client<->server round-trip lives in ../fc-to-fc.
+# This directory holds the lc->fc exchange (the differential control side) plus
+# diff.sh, the runner that compares it against the libcoap base harness in
+# ../libcoap. The native FreeCoAP round-trip lives in ../freecoap.
 #   build : ./fc-build.sh links the libcoap client + FreeCoAP server bitcode into
 #           freecoap-linked.bc.
 #   run   : KLEE interprets it with the CoAP socket model (PROTOCOL=CoAP) shuttling
 #           datagrams client<->server and running the selected monitor once each.
 
-# ---- Shared KLEE run API (identical to libcoap-harness/Makefile) ----
+# ---- Shared KLEE run API (identical to ../libcoap/Makefile) ----
 # The only difference between the two harnesses is the default BC and which
 # experiment IDs are meaningful; every flag below is the same.
 BC          ?= freecoap-linked.bc

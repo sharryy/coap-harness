@@ -4,7 +4,7 @@ All paths below are absolute so the commands work from any directory.
 `klee`, `wllvm`, `extract-bc`, and `clang-13` are already on `PATH`.
 
 ```bash
-HARNESS=$HOME/project/kleener-experiments/libcoap-harness
+HARNESS=$HOME/project/kleener-experiments/libcoap
 SRC435=$HOME/project/kleener-experiments/repos/libcoap          # tag v4.3.5 (7cf7465b)
 SRC431=$HOME/project/kleener-experiments/repos/libcoap-4.3.1    # tag v4.3.1 (c694bae)
 ```

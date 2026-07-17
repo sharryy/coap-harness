@@ -14,15 +14,16 @@ TAG="${TAG:-}"
 MAX_TIME="${MAX_TIME:-60s}"
 EXTRA="${EXTRA:---max-memory=4000}"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIBCOAP_HARNESS="$ROOT/libcoap-harness"
-FREECOAP_HARNESS="$ROOT/freecoap-harness/lc-to-fc"
+DIFF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # this dir (the lc->fc control harness)
+ROOT="$(cd "$DIFF_DIR/.." && pwd)"                          # repo root
+LIBCOAP_HARNESS="$ROOT/libcoap"                             # base side
+FREECOAP_HARNESS="$DIFF_DIR"                                # control side lives alongside this script
 CHECKER="$ROOT/tools/smt-cross-checker"
 BUILD_DIR="/home/shehryar/kleener-install/klee_build130stp_z3"
 
 LIB_OUT="klee-diff-libcoap-${EXP}${TAG}"
 FC_OUT="klee-diff-freecoap-${EXP}"
-LOG="$ROOT/diff-exp${EXP}${TAG}.log"
+LOG="$DIFF_DIR/diff-exp${EXP}${TAG}.log"
 
 # sanity gate: prove the monitor actually fired
 sanity_gate () {
