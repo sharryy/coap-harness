@@ -30,15 +30,15 @@ sanity_gate () {
     local dir="$1" name="$2" info="$1/info"
     [ -f "$info" ] || { echo "FAIL[$name]: no info file in $dir" >&2; exit 1; }
     grep -q -- '--write-smt2s' "$info" || {
-        echo "FAIL[$name]: --write-smt2s absent — EXP<100 or recipe not applied" >&2; exit 1; }
+        echo "FAIL[$name]: --write-smt2s absent (EXP<100 or recipe not applied)" >&2; exit 1; }
     local q
     q="$(grep -oE 'total queries = [0-9]+' "$info" | grep -oE '[0-9]+$' | head -1 || true)"
     if [ "${q:-0}" -eq 0 ] 2>/dev/null; then
         # queries==0 is OK for a pure-echo monitor if output is still symbolic
         if grep -rqE '\(select ' "$dir"/*.resp 2>/dev/null; then
-            echo "NOTE[$name]: total queries = 0 but output is symbolic (pure-echo monitor) — OK"
+            echo "NOTE[$name]: total queries = 0 but output is symbolic (pure-echo monitor), OK"
         else
-            echo "FAIL[$name]: total queries = 0 and output is concrete — monitor never went symbolic" >&2; exit 1
+            echo "FAIL[$name]: total queries = 0 and output is concrete, monitor never went symbolic" >&2; exit 1
         fi
     fi
     local nsmt nresp explored responded dropped mt el elsec
@@ -49,14 +49,14 @@ sanity_gate () {
     responded="$(grep -oE 'partially completed paths = [0-9]+' "$info" | grep -oE '[0-9]+$' | head -1 || echo 0)"
     dropped="$(grep -E 'done: completed paths' "$info" | grep -oE '[0-9]+' | tail -1 || echo 0)"
     echo "OK[$name]: queries=$q  paths=$explored  responded=$responded  dropped=$dropped  (smt2=$nsmt resp=$nresp)"
-    [ "$nresp" -gt 0 ] || echo "NOTE[$name]: 0 responses — every explored path dropped the request (respond-vs-drop only)"
+    [ "$nresp" -gt 0 ] || echo "NOTE[$name]: 0 responses, every explored path dropped the request (respond-vs-drop only)"
     # incompleteness signal: run consumed ~all of MAX_TIME
     mt="$(printf '%s' "$MAX_TIME" | grep -oE '[0-9]+' | head -1)"
     el="$(grep -oE 'Elapsed: [0-9:]+' "$info" | grep -oE '[0-9:]+$' | head -1)"
     if [ -n "$el" ] && [ -n "$mt" ]; then
         elsec="$(printf '%s' "$el" | awk -F: '{print ($1*3600)+($2*60)+$3}')"
         if [ "${elsec:-0}" -ge "$((mt - 2))" ] 2>/dev/null; then
-            echo "WARN[$name]: ran ${elsec}s of ${mt}s cap — exploration likely INCOMPLETE (path/expression explosion). Raise MAX_TIME or narrow the symbolic field."
+            echo "WARN[$name]: ran ${elsec}s of ${mt}s cap, exploration likely INCOMPLETE (path/expression explosion). Raise MAX_TIME or narrow the symbolic field."
         fi
     fi
 }

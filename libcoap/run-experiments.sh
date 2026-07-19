@@ -3,10 +3,8 @@
 # corresponding monitor fired (i.e. KLEE produced a .ktest demonstrating
 # a violation that the monitor's assertion caught).
 #
-# Each experiment runs the single-monitor dispatch path (the only path now —
-# the legacy inline chain was removed from coap_socket_model.c). The selected
-# monitor injects a malformed field, serialize_coap_message writes it back to
-# the wire buffer, and the SUT (libcoap) actually parses the malformed bytes.
+# The selected monitor injects a malformed field into the request, which is
+# written back to the wire buffer so the SUT (libcoap) actually parses it.
 #
 # Usage:  bash run-experiments.sh [--bc=FILE] [--tag=NAME] [--side=SERVER|CLIENT] [experiment_id...]
 #         no args      = run all against libcoap-linked.bc (4.3.5)
@@ -35,7 +33,7 @@ done
 set -- "${REST[@]+"${REST[@]}"}"
 
 if [ ! -f "$BC" ]; then
-    echo "missing $BC — run the link step from Part V §5.3 first"
+    echo "missing $BC (run the link step in DEMO.md section C first)"
     exit 1
 fi
 [ -n "$TAG" ] && echo "[runner] using bitcode=$BC  tag=$TAG"
@@ -98,7 +96,7 @@ for entry in "${EXPERIMENTS[@]}"; do
         fired=$((fired + 1))
         first_err=$(basename "${err_files[0]}")
         first_line=$(head -2 "${err_files[0]}" | tail -1)
-        echo " RESULT: monitor fired — $first_err"
+        echo " RESULT: monitor fired - $first_err"
         echo "         $first_line"
     else
         echo " RESULT: monitor did NOT fire (no .err files)"

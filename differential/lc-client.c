@@ -1,4 +1,4 @@
-/* libcoap client module — the driver for both harnesses (CON GET /test, 4-byte token). */
+/* libcoap client module - the driver for both harnesses (CON GET /test, 4-byte token). */
 
 #include <netinet/in.h>
 #include <stdio.h>

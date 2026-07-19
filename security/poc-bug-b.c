@@ -1,4 +1,4 @@
-/* Bug B: libcoap proxy UAF — cleanup gated on a registered event handler; none = dangling proxy_req. */
+/* Bug B: libcoap proxy UAF - cleanup gated on a registered event handler; none = dangling proxy_req. */
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>

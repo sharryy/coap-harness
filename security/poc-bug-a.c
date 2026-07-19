@@ -1,4 +1,4 @@
-/* Bug A: libcoap proxy UAF — cleanup removes only the first matching proxy_req (4.3.5). */
+/* Bug A: libcoap proxy UAF - cleanup removes only the first matching proxy_req (4.3.5). */
 #include <coap3/coap.h>
 #include <netinet/in.h>
 #include <stdio.h>

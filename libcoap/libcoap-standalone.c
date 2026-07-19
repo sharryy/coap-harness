@@ -105,7 +105,6 @@ int main(void) {
   if (!server_ctx) {
     fprintf(stderr, "[harness] failed to create server context\n");
     return 1;
-    ;
   }
 
   coap_address_t server_addr;

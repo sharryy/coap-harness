@@ -15,7 +15,7 @@ BC          ?= freecoap-linked.bc
 SERVER_PORT ?= 5683
 # KLEE_SYMBOLIC_EXPERIMENT: 0 = clean exchange, 0-17 = conformance, >=100 = diff-testing
 EXP         ?= 0
-# STATE_TO_CHECK
+# which peer the monitor checks (SERVER or CLIENT)
 SIDE        ?= SERVER
 MAX_TIME    ?= 60s
 OUTDIR      ?= klee-exp-$(EXP)
@@ -30,7 +30,7 @@ WRITE_SMT2  := $(shell [ "$(EXP)" -ge 100 ] 2>/dev/null && echo --write-smt2s)
 
 # NOTE: leave libcoap at its default WARN log level. At DEBUG it calls
 # coap_show_pdu, which hits an unimplemented llvm.load.relative.i64 intrinsic
-# under this KLEE build and kills the path — so do NOT set COAP_LOG_LEVEL>=7.
+# under this KLEE build and kills the path, so do NOT set COAP_LOG_LEVEL>=7.
 
 freecoap-linked.bc: fc-build.sh bridge.h lc-client.c fc-server.c fc-main.c freecoap_klee_stubs.c
 	./fc-build.sh
@@ -40,7 +40,7 @@ build: freecoap-linked.bc
 # lc -> fc exchange under KLEE. Override on the command line, e.g.:
 #   make run EXP=1        (version conformance monitor)
 #   make run EXP=2 MAX_TIME=120s
-#   make run EXP=100      (code diff-testing — auto-writes test*.smt2)
+#   make run EXP=100      (code diff-testing, auto-writes test*.smt2)
 run: $(BC)
 	PROTOCOL=CoAP SERVER_PORT=$(SERVER_PORT) KLEE_SYMBOLIC_EXPERIMENT=$(EXP) STATE_TO_CHECK=$(SIDE) \
 	    klee --libc=uclibc --posix-runtime --output-dir=$(OUTDIR) $(WRITE_SMT2) \
