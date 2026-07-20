@@ -115,24 +115,6 @@ Useful knobs, all environment variables read by `diff.sh`: `MAX_TIME` (KLEE time
 default `60s`), `LIBCOAP_BC` (which base bitcode), `TAG` (suffix for output dirs and
 the log), and `BUILD=1` (rebuild the Kleener runtime first).
 
-## Adding another implementation
-
-The pieces generalise to any CoAP server you can compile to bitcode:
-
-1. Build the server to whole-program bitcode with wllvm and `extract-bc`.
-2. Write a harness that drives it. It has to obey the Kleener execution model: one
-   process, no forking and no blocking loop, a single valid CoAP request/response
-   exchange, and the small hooks the socket model expects. `differential/` is the
-   worked example of adapting a server whose own API wanted to block. Reuse the
-   libcoap client (`differential/lc-client.c`) so the client is a fixed variable and
-   only the server changes.
-3. Compile the harness to bitcode and `llvm-link` it with the server bitcode and the
-   override stubs.
-4. Add the new side to `diff.sh` as either the base or the control, and run.
-
-The one part that does not come for free is deciding whether a server can be driven
-in a single non-blocking process at all. That is a design call, not a mechanical one.
-
 ## Watching packets on the wire
 
 The differential runs execute under KLEE with an in-process socket model, so they
