@@ -13,12 +13,11 @@ PDUs.
 ## Layout
 
 - `cantcoap-standalone.cpp` - native fork-based client/server exchange over real
-  loopback UDP, visible to tcpdump. This is the main demo.
-- `cantcoap-standalone-sp.cpp` - a single-process variant shaped so the Kleener
-  socket model can drive it under the conformance monitors. Experimental.
-- `cpp_stubs.cpp` - operator new/delete over malloc, so the bitcode needs no
-  libstdc++.
-- `Makefile`, `run-experiments.sh` - build, and an exploratory monitor run.
+  loopback UDP, visible to tcpdump. This is the demo.
+- `Makefile` - builds it against `libcantcoap.a`.
+- `cantcoap-standalone-sp.cpp`, `cpp_stubs.cpp`, `run-experiments.sh` -
+  experimental single-process KLEE scaffolding, left in but not wired into the
+  toolchain.
 
 ## Native demo
 
@@ -32,14 +31,3 @@ To watch it on the wire, sniff loopback in another terminal before `make run`:
 ```sh
 sudo tcpdump -i lo -n udp port 5683
 ```
-
-## Running the monitors (exploratory, not part of the results)
-
-```sh
-make bc                 # build cantcoap-linked.bc
-./run-experiments.sh    # run the conformance monitors, report which fired
-```
-
-This path needs the Kleener runtime on `PATH` (same as the other harnesses). It
-is included for completeness only; its output is not validated and is not used in
-the report.
