@@ -33,8 +33,9 @@ before the session memory is freed. Two things went wrong there:
   registered one skipped the cleanup entirely on session teardown, leaving the same
   dangling records. This one was still live on the development branch when it was
   found, not only in the release, which made it the stronger finding. Fixed upstream
-  in commit `abde6a5`, which moves the association cleanup ahead of the event-callback
-  dispatch so it runs even when no callback is registered.
+  in commit [`abde6a5`](https://github.com/obgm/libcoap/commit/abde6a513a29d1dd3fb9d23feb8e1218ad81d1e0),
+  which moves the association cleanup ahead of the event-callback dispatch so it runs
+  even when no callback is registered.
   `poc-bug-b-groom.c` triggers the same bug through the idle-session reap path, which
   is the more heap-groomable way in.
 
@@ -47,8 +48,9 @@ libcoap matched that ACK to the pending request by Message ID alone and did not 
 the token. RFC 7252 section 5.3.2 requires the token to match as well, so a response
 carrying the right Message ID but the wrong token was accepted as the answer. The
 reproducer stands up a client, has a forger reply with a correct-MID / wrong-token
-ACK, and shows libcoap delivering it. Fixed upstream in commit `2e995218`, which
-reworked the send-queue matching (`coap_remove_from_queue`) to key on both the
+ACK, and shows libcoap delivering it. Fixed upstream in commit
+[`2e995218`](https://github.com/obgm/libcoap/commit/2e995218f356d63070afee0517f3c89dd44a944e),
+which reworked the send-queue matching (`coap_remove_from_queue`) to key on both the
 Message ID and the token, so an ACK is taken as the answer only when its token
 matches too.
 

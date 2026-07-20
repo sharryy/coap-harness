@@ -32,41 +32,28 @@ walk-through of the older per-requirement conformance monitors, read
 
 ## Prerequisites
 
-This repository holds the harnesses and the reproducers. It does **not** carry the
-symbolic-execution engine, the monitors, or the implementations under test. Those
-live elsewhere and have to be in place before anything here runs.
+This repo holds only the harnesses and reproducers. The engine, monitors, and
+implementations under test live elsewhere and must be in place first:
 
-- **Kleener** - the KLEE fork that provides the CoAP socket model and the monitors.
-  The harnesses do not link against it; instead you run them under a `klee` binary
-  built from Kleener, and the monitor is selected at run time by the
-  `KLEE_SYMBOLIC_EXPERIMENT` environment variable. The differential recording
-  monitors (IDs 100 and up) and the conformance monitors (IDs 1 to 10) both live in
-  `runtime/Intrinsic/Protocols/CoAP/` inside that fork. If you change a monitor you
-  rebuild Kleener's runtime, not this repo.
-- **LLVM / Clang 13**, plus `llvm-link`, and **wllvm** with `extract-bc`. wllvm is
-  what lets you compile an implementation normally and still get one whole-program
-  bitcode file out the other end, which is what KLEE consumes.
-- **KLEE 3.0** (the one built from Kleener) on your `PATH`.
-- **The cross-checker.** `diff.sh` calls
-  [`smt-cross-checker`](https://gitlab.com/symbolic-differential-testing/smt-cross-checker),
-  which is not part of this repo. Clone it into `tools/smt-cross-checker` and make a
-  virtualenv with its `requirements.txt` (it needs `z3-solver` and `pysmt`):
+- **Kleener** - the KLEE fork with the CoAP socket model and monitors. You run the
+  harnesses under its `klee` binary; the monitor is chosen at run time via
+  `KLEE_SYMBOLIC_EXPERIMENT`. Monitors live in `runtime/Intrinsic/Protocols/CoAP/`
+  in that fork, so changing one means rebuilding Kleener, not this repo.
+- **Clang 13**, `llvm-link`, and **wllvm** with `extract-bc` (wllvm produces the
+  whole-program bitcode KLEE consumes), plus **KLEE 3.0** on `PATH`.
+- **The cross-checker**, not part of this repo. Clone it and make a venv:
   ```sh
   git clone https://gitlab.com/symbolic-differential-testing/smt-cross-checker tools/smt-cross-checker
   python3 -m venv tools/smt-cross-checker/.venv
   tools/smt-cross-checker/.venv/bin/pip install -r tools/smt-cross-checker/requirements.txt
   ```
-- **The implementation source trees**, under `repos/` (also not tracked here):
-  libcoap at tag `v4.3.5`, libcoap at tag `v4.3.1` for the cross-version runs, and
-  FreeCoAP. The build recipe for the libcoap bitcode is in
-  [`libcoap/README.md`](libcoap/README.md), "Build the whole-program bitcode".
-- **For the security reproducers only:** `gcc` and an ASan-instrumented libcoap
-  build. No KLEE involved there.
+- **The SUT source trees** under `repos/` (not tracked): libcoap `v4.3.5`, libcoap
+  `v4.3.1`, and FreeCoAP. Bitcode build recipe is in
+  [`libcoap/README.md`](libcoap/README.md).
+- **For the security reproducers only:** `gcc` and an ASan-instrumented libcoap.
 
-A note on paths: `differential/diff.sh` and the Makefiles currently assume this tree
-lives at `$HOME/project/kleener-experiments`, and `diff.sh` hard-codes the Kleener
-build directory it rebuilds when you pass `BUILD=1`. If you work somewhere else,
-adjust those spots.
+Paths: `diff.sh` and the Makefiles assume this tree lives at
+`$HOME/project/kleener-experiments`; adjust if yours differs.
 
 ## How a differential run fits together
 
