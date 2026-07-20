@@ -17,15 +17,18 @@ together, and how to point it at an implementation. If you just want a scripted
 walk-through of the older per-requirement conformance monitors, read
 [`libcoap/README.md`](libcoap/README.md) instead.
 
-## Repository layout
+## Layout
 
-| Path | What it is |
-|------|-----------|
-| `libcoap/` | A single-process libcoap client+server driver. This is the base side of a differential run, and also the target for the conformance monitors and the cross-version (4.3.1 vs 4.3.5) runs. |
-| `freecoap/` | A native FreeCoAP client-and-server round-trip, kept as a standalone sanity demo (no KLEE). |
-| `differential/` | The cross-implementation comparison: the libcoap-client to FreeCoAP-server harness (the control side) plus `diff.sh`, the runner that drives it against `libcoap/` and cross-checks the two. |
-| `security/` | Native ASan reproducers for the libcoap memory-safety findings. |
-| `Makefile` | `make clean` / `make clean-logs` to wipe run artifacts. |
+- `libcoap/` - single-process libcoap client+server driver. The base side of a
+  differential run, and the target for the conformance monitors and the
+  cross-version (4.3.1 vs 4.3.5) runs.
+- `freecoap/` - native FreeCoAP client-and-server round-trip, a standalone
+  sanity demo (no KLEE).
+- `differential/` - the cross-implementation comparison: the libcoap-client to
+  FreeCoAP-server harness (the control side) plus `diff.sh`, the runner that
+  drives it against `libcoap/` and cross-checks the two.
+- `security/` - native ASan reproducers for the libcoap memory-safety findings.
+- `Makefile` - `make clean` / `make clean-logs` to wipe run artifacts.
 
 ## Prerequisites
 
