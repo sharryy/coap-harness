@@ -15,7 +15,7 @@ Testing harnesses for CoAP implementations, built for two related jobs:
 This README covers what you need installed, how the differential pipeline fits
 together, and how to point it at an implementation. If you just want a scripted
 walk-through of the older per-requirement conformance monitors, read
-[`libcoap/DEMO.md`](libcoap/DEMO.md) instead.
+[`libcoap/README.md`](libcoap/README.md) instead.
 
 ## Repository layout
 
@@ -56,7 +56,7 @@ live elsewhere and have to be in place before anything here runs.
 - **The implementation source trees**, under `repos/` (also not tracked here):
   libcoap at tag `v4.3.5`, libcoap at tag `v4.3.1` for the cross-version runs, and
   FreeCoAP. The build recipe for the libcoap bitcode is in
-  [`libcoap/DEMO.md`](libcoap/DEMO.md), section B.
+  [`libcoap/README.md`](libcoap/README.md), "Build the whole-program bitcode".
 - **For the security reproducers only:** `gcc` and an ASan-instrumented libcoap
   build. No KLEE involved there.
 

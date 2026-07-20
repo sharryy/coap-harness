@@ -33,7 +33,7 @@ done
 set -- "${REST[@]+"${REST[@]}"}"
 
 if [ ! -f "$BC" ]; then
-    echo "missing $BC (run the link step in DEMO.md section C first)"
+    echo "missing $BC (run the link step in README.md first)"
     exit 1
 fi
 [ -n "$TAG" ] && echo "[runner] using bitcode=$BC  tag=$TAG"

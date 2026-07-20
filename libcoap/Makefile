@@ -1,5 +1,6 @@
 CC = clang
 LIBCOAP_DIR ?= $(HOME)/project/kleener-experiments/repos/libcoap
+LIBCOAP_431_DIR ?= $(HOME)/project/kleener-experiments/repos/libcoap-4.3.1
 
 CFLAGS = -Wall -Wextra -std=c11 -g -O0 \
 		-fno-omit-frame-pointer \
@@ -34,12 +35,23 @@ libcoap-linked.bc: libcoap-standalone.bc klee_stubs.bc
 	    --override=klee_stubs.bc \
 	    $(LIBCOAP_DIR)/.libs/libcoap-3-notls.bc -o $@
 
+# 4.3.1 variant: same harness source (compat shims handle both versions),
+# linked against the 4.3.1 bitcode. Name matches what diff.sh expects.
+libcoap-standalone-431.bc: libcoap-standalone.c
+	$(CC) -emit-llvm -c -g -O0 -I$(LIBCOAP_431_DIR)/include $< -o $@
+
+libcoap-431-linked.bc: libcoap-standalone-431.bc klee_stubs.bc
+	llvm-link libcoap-standalone-431.bc \
+	    --override=klee_stubs.bc \
+	    $(LIBCOAP_431_DIR)/.libs/libcoap-3-notls.bc -o $@
+
 run: $(BC)
 	PROTOCOL=CoAP SERVER_PORT=$(SERVER_PORT) KLEE_SYMBOLIC_EXPERIMENT=$(EXP) STATE_TO_CHECK=$(SIDE) \
 	    klee --libc=uclibc --posix-runtime --output-dir=$(OUTDIR) $(WRITE_SMT2) \
 	         --max-time=$(MAX_TIME) $(EXTRA) $(BC)
 
 clean:
-	rm -f libcoap-standalone libcoap-standalone.bc klee_stubs.bc libcoap-linked.bc
+	rm -f libcoap-standalone libcoap-standalone.bc klee_stubs.bc libcoap-linked.bc \
+	      libcoap-standalone-431.bc libcoap-431-linked.bc
 
 .PHONY: run run-native clean
