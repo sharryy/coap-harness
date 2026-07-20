@@ -17,7 +17,7 @@ a whole is described in the [top-level README](../README.md).
 - `run-experiments.sh` - runs the conformance monitors (IDs 1-10) and reports
   which ones fired.
 
-## The two libcoap versions
+## The libcoap trees used here
 
 Two source trees under `../repos`, built the same way. All paths below are
 absolute so the commands work from any directory.
@@ -28,66 +28,46 @@ SRC435=$HOME/project/kleener-experiments/repos/libcoap          # tag v4.3.5 (fi
 SRC431=$HOME/project/kleener-experiments/repos/libcoap-4.3.1    # tag v4.3.1 (buggy)
 ```
 
-| Version | Source tree | Whole-program bitcode | Linked harness bitcode |
-|---------|-------------|-----------------------|------------------------|
-| 4.3.5 (fixed) | `$SRC435` | `$SRC435/.libs/libcoap-3-notls.bc` | `libcoap-linked.bc` |
-| 4.3.1 (buggy) | `$SRC431` | `$SRC431/.libs/libcoap-3-notls.bc` | `libcoap-431-linked.bc` |
+The harness is version-agnostic: point `LIBCOAP_DIR` at any libcoap source tree
+and it links against that. This work used two, 4.3.5 (fixed) and 4.3.1 (buggy),
+to compare a release against its predecessor. Nothing about a version is baked
+into the build.
 
 ## Build the whole-program bitcode
 
-Only needed once per source tree, or when a tree changes. Both versions use the
-**same** configure line - the flags below are the subset that exists in both
-4.3.1 and 4.3.5 (newer `--disable-*` switches that 4.3.5 added do not exist in
-4.3.1, so they are left out to keep one command working for both).
+Needed once per source tree. Configure with `wllvm` so a whole-program bitcode
+file falls out beside the static library, then extract it:
 
 ```bash
-export LLVM_COMPILER=clang        # tells wllvm to emit bitcode alongside objects
-
-CONFIGURE_FLAGS="--disable-dtls --disable-tcp --disable-async \
-                 --disable-documentation --disable-doxygen --disable-manpages \
-                 --disable-shared --enable-static --enable-examples"
-```
-
-### 4.3.5
-
-```bash
-cd "$SRC435"
-git checkout v4.3.5            # ensure the exact release tag
-./autogen.sh                  # only if ./configure is missing
-./configure $CONFIGURE_FLAGS CC=wllvm
-make -j$(nproc)
-extract-bc .libs/libcoap-3-notls.a                       # -> libcoap-3-notls.a.bc
-ln -sf libcoap-3-notls.a.bc .libs/libcoap-3-notls.bc     # name the harness links against
-```
-
-### 4.3.1 (two extra quirks)
-
-```bash
-cd "$SRC431"
-git checkout v4.3.1
-./autogen.sh
-./configure $CONFIGURE_FLAGS CC=wllvm
-touch libcoap-3.sym           # bypass the ctags-dependent .sym rule (ctags not installed)
+cd "$SRC435"                      # or any libcoap tree
+export LLVM_COMPILER=clang
+./autogen.sh                      # only if ./configure is missing
+./configure --disable-dtls --disable-tcp --disable-async \
+            --disable-documentation --disable-doxygen --disable-manpages \
+            --disable-shared --enable-static --enable-examples CC=wllvm
 make -j$(nproc)
 extract-bc .libs/libcoap-3-notls.a
-ln -sf libcoap-3-notls.a.bc .libs/libcoap-3-notls.bc
+ln -sf libcoap-3-notls.a.bc .libs/libcoap-3-notls.bc   # name the harness links against
 ```
+
+Those configure flags are the subset common to 4.3.1 and 4.3.5, so the one line
+works for both. An older tree may need `touch libcoap-3.sym` before `make` (it
+skips a ctags-dependent rule when ctags is missing).
 
 ## Link the harness bitcode
 
-Once the whole-program bitcode exists, link the harness against it. The
-`Makefile` already points at both source trees.
+Point `LIBCOAP_DIR` at the tree and name the output:
 
 ```bash
 cd "$HARNESS"
-make libcoap-linked.bc        # harness + klee_stubs + 4.3.5 bitcode
-make libcoap-431-linked.bc    # harness + klee_stubs + 4.3.1 bitcode
+make libcoap-linked.bc                                          # default tree (LIBCOAP_DIR)
+make linked LINKED=libcoap-431-linked.bc LIBCOAP_DIR=$SRC431    # any other tree
 ```
 
-Each target compiles the harness to bitcode and then `llvm-link`s it with the
-libcoap bitcode and `klee_stubs.bc` (the `--override` lets the stubs replace
-`getifaddrs` and the logging path that KLEE cannot model). The 4.3.1 target uses
-`LIBCOAP_431_DIR`, which defaults to `$SRC431`.
+`llvm-link` combines the harness with the libcoap bitcode and `klee_stubs.bc`,
+whose `--override` replaces `getifaddrs` and the logging path KLEE cannot model.
+The output name is what you then pass to `diff.sh` as `LIBCOAP_BC` or to
+`run-experiments.sh` as `--bc`.
 
 ## Run the conformance monitors
 

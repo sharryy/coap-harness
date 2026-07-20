@@ -33,7 +33,7 @@ This repository holds the harnesses and the reproducers. It does **not** carry t
 symbolic-execution engine, the monitors, or the implementations under test. Those
 live elsewhere and have to be in place before anything here runs.
 
-- **Kleener** — the KLEE fork that provides the CoAP socket model and the monitors.
+- **Kleener** - the KLEE fork that provides the CoAP socket model and the monitors.
   The harnesses do not link against it; instead you run them under a `klee` binary
   built from Kleener, and the monitor is selected at run time by the
   `KLEE_SYMBOLIC_EXPERIMENT` environment variable. The differential recording
@@ -72,18 +72,17 @@ executes:
 
 1. **The implementation as whole-program bitcode.** Configure and build the SUT with
    `CC=wllvm`, then `extract-bc` the static library. For libcoap this yields
-   `.libs/libcoap-3-notls.bc`. This step is only needed once per SUT version; the
-   two `libcoap-linked*.bc` files in `libcoap/` are already built.
+   `.libs/libcoap-3-notls.bc`. This step is only needed once per SUT version.
 2. **The harness as bitcode.** `clang -emit-llvm -c` on `libcoap-standalone.c` (or
    the FreeCoAP harness sources).
 3. **A small set of stubs**, linked with `llvm-link --override=` so they win over the
    real symbols. These replace host calls KLEE cannot model cleanly (logging,
    `getifaddrs`, and for FreeCoAP `getaddrinfo` and `timerfd`).
 
-`make libcoap-linked.bc` in `libcoap/` does steps 2 and 3 and links against the 4.3.5
-bitcode. The 4.3.1 build is the same command with `LIBCOAP_DIR` pointed at the 4.3.1
-source tree, saved as `libcoap-431-linked.bc`. `differential/fc-build.sh` does the
-equivalent for the FreeCoAP side.
+`make libcoap-linked.bc` in `libcoap/` does steps 2 and 3, linking against the tree
+in `LIBCOAP_DIR`. Build another version by pointing `LIBCOAP_DIR` at it and naming
+the output (`make linked LINKED=libcoap-431-linked.bc LIBCOAP_DIR=...`).
+`differential/fc-build.sh` does the equivalent for the FreeCoAP side.
 
 ## Running an experiment
 
