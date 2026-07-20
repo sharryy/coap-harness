@@ -40,6 +40,4 @@ freecoap/freecoap-standalone
 cantcoap/cantcoap-standalone
 security/poc-bug-a
 security/poc-bug-b
-security/poc-bug-b-groom
-security/proxy-uaf-repro
 security/token-spoof-repro

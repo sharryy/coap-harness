@@ -5,7 +5,6 @@ libcoap-standalone-431
 # Compiled native reproducers / harness binaries (regenerate with `make`)
 token-spoof-repro
 token-spoof-repro-431
-token-spoof-repro-dbg
 token-spoof-repro-postfix
 
 # KLEE / Kleener experiment output.
@@ -31,10 +30,6 @@ exp-*/
 smoke*/
 byte-test/
 disp-*/
-proxy-uaf-repro
-pu-435
-pu-dev
-proxy-uaf-repro-dev
 
 # Proxy UAF per-bug PoC binaries (regenerate with `make poc-bug-a` / `poc-bug-b`).
 # Source (.c) and the saved ASan logs (.txt) ARE tracked; only the binaries are not.

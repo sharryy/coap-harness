@@ -36,14 +36,9 @@ before the session memory is freed. Two things went wrong there:
   in commit [`abde6a5`](https://github.com/obgm/libcoap/commit/abde6a513a29d1dd3fb9d23feb8e1218ad81d1e0),
   which moves the association cleanup ahead of the event-callback dispatch so it runs
   even when no callback is registered.
-  `poc-bug-b-groom.c` triggers the same bug through the idle-session reap path, which
-  is the more heap-groomable way in.
 
-- `proxy-uaf-repro.c` is the combined reproducer: the `REGISTER_EVT` toggle at the
-  top selects Bug A or Bug B behaviour from one file.
-
-**Piggybacked-ACK token spoof** (`token-spoof-repro.c`, and `-dbg.c` with extra
-tracing). When a server answers a confirmable request with a piggybacked ACK,
+**Piggybacked-ACK token spoof** (`token-spoof-repro.c`). When a server answers a
+confirmable request with a piggybacked ACK,
 libcoap matched that ACK to the pending request by Message ID alone and did not check
 the token. RFC 7252 section 5.3.2 requires the token to match as well, so a response
 carrying the right Message ID but the wrong token was accepted as the answer. The
