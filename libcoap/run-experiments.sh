@@ -1,14 +1,9 @@
 #!/usr/bin/env bash
-# Run each KLEE_SYMBOLIC_EXPERIMENT in sequence and report whether the
-# corresponding monitor fired (i.e. KLEE produced a .ktest demonstrating
-# a violation that the monitor's assertion caught).
-#
-# The selected monitor injects a malformed field into the request, which is
-# written back to the wire buffer so the SUT (libcoap) actually parses it.
+# Run each conformance experiment and report whether its monitor fired.
 #
 # Usage:  bash run-experiments.sh [--bc=FILE] [--tag=NAME] [--side=SERVER|CLIENT] [experiment_id...]
 #         no args      = run all against libcoap-linked.bc (4.3.5)
-#         --bc=FILE    = use a different bitcode (e.g. libcoap-linked-431.bc)
+#         --bc=FILE    = use a different bitcode (e.g. libcoap-431-linked.bc)
 #         --tag=NAME   = prefix output dirs with NAME-  (default: empty)
 #         --side=SIDE  = which side the monitor checks (default: SERVER)
 #         id args      = run only the given experiment IDs

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-# Build the libcoap-client -> FreeCoAP-server KLEE target (freecoap-linked.bc).
-#   fc-main.c   : lib-agnostic orchestrator
-#   lc-client.c : libcoap client  (libcoap headers)
-#   fc-server.c : FreeCoAP server  (FreeCoAP headers)
-#   *_stubs     : getaddrinfo/timerfd/getifaddrs stubs (--override so they win)
-# Linked against the prebuilt libcoap bitcode + FreeCoAP server bitcode.
+# Build the libcoap-client -> FreeCoAP-server KLEE target (freecoap-linked.bc):
+# compile each module against its own library's headers, then llvm-link them
+# with the libcoap and FreeCoAP bitcode and the override stubs.
 set -euo pipefail
 cd "$(dirname "$0")"
 

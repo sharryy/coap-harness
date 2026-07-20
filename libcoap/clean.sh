@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# Remove KLEE output directories from the harness folder.
-# A KLEE output dir is detected by a run marker (run.stats / info / assembly.ll)
-# rather than a name pattern, so this catches every run regardless of how it was
-# tagged (exp-*, v431-*, v435-*, disp-*, byte-test, …).
+# Remove KLEE output dirs, detected by a run marker (run.stats/info/assembly.ll)
+# rather than by name, so every run is caught regardless of its tag.
 
 set -u
 cd "$(dirname "$0")"

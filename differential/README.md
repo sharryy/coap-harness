@@ -6,11 +6,11 @@ harness in `../libcoap`, and the two recorded responses are cross-checked with Z
 
 ## Layout
 
-- `diff.sh` — the runner. It builds both sides, runs the experiment, and
+- `diff.sh` - the runner. It builds both sides, runs the experiment, and
   cross-checks. Base side is `../libcoap`; the control side is here.
-- `lc-client.c`, `fc-server.c`, `fc-main.c`, `bridge.h`, `freecoap_klee_stubs.c` —
+- `lc-client.c`, `fc-server.c`, `fc-main.c`, `bridge.h`, `freecoap_klee_stubs.c` -
   the libcoap-client to FreeCoAP-server harness.
-- `fc-build.sh`, `Makefile` — build `freecoap-linked.bc` and run it under KLEE.
+- `fc-build.sh`, `Makefile` - build `freecoap-linked.bc` and run it under KLEE.
 
 ## Running
 
