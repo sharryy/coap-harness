@@ -9,6 +9,7 @@
 !/libcoap/
 !/freecoap/
 !/differential/
+!/cantcoap/
 !/security/
 
 # --- inside the included dirs, never track build output, KLEE run artifacts,
@@ -31,11 +32,14 @@ klee-diff-*/
 klee-dbg-*/
 klee-exp-*/
 klee-*-check/
+cc-exp-*/
+smoke-exp*/
 .venv/
 
 # harness binaries (no extension)
 libcoap/libcoap-standalone
 freecoap/freecoap-standalone
+cantcoap/cantcoap-standalone
 security/poc-bug-a
 security/poc-bug-b
 security/poc-bug-b-groom

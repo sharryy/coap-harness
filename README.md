@@ -24,6 +24,8 @@ walk-through of the older per-requirement conformance monitors, read
   cross-version (4.3.1 vs 4.3.5) runs.
 - `freecoap/` - native FreeCoAP client-and-server round-trip, a standalone
   sanity demo (no KLEE).
+- `cantcoap/` - a cantcoap reference harness, kept for completeness. Not part of
+  the differential pipeline or the results.
 - `differential/` - the cross-implementation comparison: the libcoap-client to
   FreeCoAP-server harness (the control side) plus `diff.sh`, the runner that
   drives it against `libcoap/` and cross-checks the two.
