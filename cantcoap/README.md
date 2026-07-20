@@ -15,9 +15,6 @@ PDUs.
 - `cantcoap-standalone.cpp` - native fork-based client/server exchange over real
   loopback UDP, visible to tcpdump. This is the demo.
 - `Makefile` - builds it against `libcantcoap.a`.
-- `cantcoap-standalone-sp.cpp`, `cpp_stubs.cpp`, `run-experiments.sh` -
-  experimental single-process KLEE scaffolding, left in but not wired into the
-  toolchain.
 
 ## Native demo
 

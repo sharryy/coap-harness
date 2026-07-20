@@ -18,33 +18,7 @@ $(CANTCOAP_DIR)/libcantcoap.a:
 run: cantcoap-standalone
 	./cantcoap-standalone
 
-# ---- Bitcode targets (single-process harness for KLEE) ----
-# Compile straight to bitcode and supply operator new/delete via cpp_stubs
-# instead of libstdc++. The CoAP model + monitors come from Kleener's runtime.
-BCFLAGS = -emit-llvm -c -g -O0 -std=c++11 -I$(CANTCOAP_DIR)
-
-cantcoap-standalone-sp.bc: cantcoap-standalone-sp.cpp
-	$(CXX) $(BCFLAGS) $< -o $@
-
-cantcoap.bc: $(CANTCOAP_DIR)/cantcoap.cpp
-	$(CXX) $(BCFLAGS) $< -o $@
-
-nethelper.bc: $(CANTCOAP_DIR)/nethelper.c
-	clang -emit-llvm -c -g -O0 -I$(CANTCOAP_DIR) $< -o $@
-
-cpp_stubs.bc: cpp_stubs.cpp
-	$(CXX) $(BCFLAGS) $< -o $@
-
-cantcoap-linked.bc: cantcoap-standalone-sp.bc cantcoap.bc nethelper.bc cpp_stubs.bc
-	llvm-link $^ -o $@
-
-bc: cantcoap-linked.bc
-
-experiments: cantcoap-linked.bc
-	./run-experiments.sh
-
 clean:
-	rm -f cantcoap-standalone *.bc
-	rm -rf cc-exp-* smoke-exp*
+	rm -f cantcoap-standalone
 
-.PHONY: run bc experiments clean
+.PHONY: run clean

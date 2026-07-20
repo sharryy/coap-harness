@@ -32,8 +32,6 @@ klee-diff-*/
 klee-dbg-*/
 klee-exp-*/
 klee-*-check/
-cc-exp-*/
-smoke-exp*/
 .venv/
 
 # harness binaries (no extension)

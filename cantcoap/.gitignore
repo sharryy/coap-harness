@@ -1,10 +1,2 @@
-# Build artifacts (regenerate with `make`)
-*.bc
+# Build artifact (regenerate with `make`)
 cantcoap-standalone
-
-# KLEE / Kleener experiment output (one dir per experiment)
-cc-exp-*/
-smoke-exp*/
-klee-last
-klee-out-*/
-*.pcap
