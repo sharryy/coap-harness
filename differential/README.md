@@ -4,6 +4,9 @@ The cross-implementation comparison. A libcoap client drives a FreeCoAP server h
 (the control side), `diff.sh` runs the same experiment against the libcoap base
 harness in `../libcoap`, and the two recorded responses are cross-checked with Z3.
 
+File prefixes follow the implementation they belong to: `lc-` is libcoap, `fc-` is
+FreeCoAP.
+
 ## Layout
 
 - `diff.sh` - the runner. It builds both sides, runs the experiment, and
