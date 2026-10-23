@@ -1,6 +1,7 @@
 /* FreeCoAP server module (the SUT for the libcoap->FreeCoAP differential run). */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "coap_msg.h"
 #include "coap_mem.h"
@@ -9,7 +10,12 @@
 #include "bridge.h"
 
 #define HOST "127.0.0.1"
-#define PORT "5683"
+/* Port from the SERVER_PORT env var so parallel KLEE lanes do not clash on bind. */
+static const char *fc_port(void)
+{
+    const char *p = getenv("SERVER_PORT");
+    return p ? p : "5683";
+}
 
 #define SMALL_BUF_NUM   128
 #define SMALL_BUF_LEN   256
@@ -54,13 +60,13 @@ int fc_server_init(void)
     coap_log_set_level(COAP_LOG_INFO);
 
     memset(&g_server, 0, sizeof g_server);
-    ret = coap_server_create(&g_server, exchange_handle, HOST, PORT);
+    ret = coap_server_create(&g_server, exchange_handle, HOST, fc_port());
     if (ret < 0)
     {
         fprintf(stderr, "[fc-server] coap_server_create failed: %d\n", ret);
         return ret;
     }
-    fprintf(stderr, "[fc-server] FreeCoAP server created on %s:%s\n", HOST, PORT);
+    fprintf(stderr, "[fc-server] FreeCoAP server created on %s:%s\n", HOST, fc_port());
     return 0;
 }
 

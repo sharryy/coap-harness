@@ -89,6 +89,12 @@ static coap_response_t client_response_handler(coap_session_t *session,
   return COAP_RESPONSE_OK;
 }
 
+/* Port from the SERVER_PORT env var so parallel KLEE lanes do not clash on bind. */
+static uint16_t harness_port(void) {
+  const char *p = getenv("SERVER_PORT");
+  return (uint16_t)(p ? atoi(p) : 5683);
+}
+
 int main(void) {
   coap_log_t log_level = COAP_LOG_WARN;
 
@@ -110,7 +116,7 @@ int main(void) {
   coap_address_t server_addr;
   coap_address_init(&server_addr);
   server_addr.addr.sin.sin_family = AF_INET;
-  server_addr.addr.sin.sin_port = htons(5683);
+  server_addr.addr.sin.sin_port = htons(harness_port());
   server_addr.addr.sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
   coap_resource_t *resource = coap_resource_init(
@@ -132,7 +138,7 @@ int main(void) {
     return 1;
   }
 
-  fprintf(stderr, "[harness] libcoap server listening on 127.0.0.1:5683\n");
+  fprintf(stderr, "[harness] libcoap server listening on 127.0.0.1:%u\n", harness_port());
   fprintf(stderr, "[harness] libcoap version: %s\n", coap_package_version());
 
   coap_context_t *client_ctx = coap_new_context(NULL);
@@ -145,7 +151,7 @@ int main(void) {
   coap_address_t dst_addr;
   coap_address_init(&dst_addr);
   dst_addr.addr.sin.sin_family = AF_INET;
-  dst_addr.addr.sin.sin_port = htons(5683);
+  dst_addr.addr.sin.sin_port = htons(harness_port());
   dst_addr.addr.sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
   coap_session_t *client_session =

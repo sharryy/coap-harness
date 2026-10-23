@@ -27,6 +27,13 @@ static coap_response_t client_response_handler(coap_session_t *session,
     return COAP_RESPONSE_OK;
 }
 
+/* Port from the SERVER_PORT env var so parallel KLEE lanes do not clash on bind. */
+static uint16_t lc_client_port(void)
+{
+    const char *p = getenv("SERVER_PORT");
+    return (uint16_t)(p ? atoi(p) : 5683);
+}
+
 int lc_client_init(void)
 {
     coap_log_t log_level = COAP_LOG_WARN;
@@ -47,7 +54,7 @@ int lc_client_init(void)
     coap_address_t dst_addr;
     coap_address_init(&dst_addr);
     dst_addr.addr.sin.sin_family = AF_INET;
-    dst_addr.addr.sin.sin_port = htons(5683);
+    dst_addr.addr.sin.sin_port = htons(lc_client_port());
     dst_addr.addr.sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     client_session = coap_new_client_session(client_ctx, NULL, &dst_addr, COAP_PROTO_UDP);
