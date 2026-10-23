@@ -28,21 +28,73 @@ extern int coap_server_exchange_once(coap_server_t *server);
 
 static coap_server_t g_server;
 
-/* GET -> 2.05 Content; other methods -> 5.01 */
+#define RESOURCE "test"
+#define RESOURCE_PAYLOAD "Hello World"
+
+static int reply(coap_msg_t *resp, unsigned code_class, unsigned code_detail,
+                 const char *payload)
+{
+    int ret;
+
+    ret = coap_msg_set_code(resp, code_class, code_detail);
+    if (ret < 0)
+        return ret;
+    return coap_msg_set_payload(resp, (char *)payload, strlen(payload));
+}
+
+static int has_op(coap_msg_t *msg, unsigned num)
+{
+    coap_msg_op_t *op;
+
+    for (op = coap_msg_get_first_op(msg); op != NULL; op = coap_msg_op_get_next(op))
+        if (coap_msg_op_get_num(op) == num)
+            return 1;
+    return 0;
+}
+
+/* Uri-Path is exactly the single segment RESOURCE */
+static int is_resource_path(coap_msg_t *msg)
+{
+    coap_msg_op_t *op;
+    int segments = 0;
+    int match = 0;
+
+    for (op = coap_msg_get_first_op(msg); op != NULL; op = coap_msg_op_get_next(op))
+    {
+        if (coap_msg_op_get_num(op) != COAP_MSG_URI_PATH)
+            continue;
+        segments++;
+        match = coap_msg_op_get_len(op) == strlen(RESOURCE)
+             && memcmp(coap_msg_op_get_val(op), RESOURCE, strlen(RESOURCE)) == 0;
+    }
+    return segments == 1 && match;
+}
+
+/* Answers like libcoap's core does for one GET resource /test; rules in README.md. */
 static int exchange_handle(coap_server_trans_t *trans, coap_msg_t *req,
                            coap_msg_t *resp)
 {
-    static const char body[] = "sharryy";
-    unsigned code_detail;
+    unsigned method = coap_msg_get_code_detail(req);
 
     (void)trans;
-    code_detail = coap_msg_get_code_detail(req);
-    if (code_detail != COAP_MSG_GET)
-        return coap_msg_set_code(resp, COAP_MSG_SERVER_ERR, COAP_MSG_NOT_IMPL);
 
-    fprintf(stderr, "[fc-server] got GET, replying 2.05 Content\n");
-    coap_msg_set_code(resp, COAP_MSG_SUCCESS, COAP_MSG_CONTENT);
-    return coap_msg_set_payload(resp, (char *)body, strlen(body));
+    if (has_op(req, COAP_MSG_PROXY_URI) || has_op(req, COAP_MSG_PROXY_SCHEME))
+        return reply(resp, COAP_MSG_SERVER_ERR, COAP_MSG_PROXY_NOT_SUP, "Proxying Not Supported");
+
+    if (!is_resource_path(req))
+    {
+        if (method == COAP_MSG_DELETE)
+            return reply(resp, COAP_MSG_SUCCESS, COAP_MSG_DELETED, "Deleted");
+        return reply(resp, COAP_MSG_CLIENT_ERR, COAP_MSG_NOT_FOUND, "Not Found");
+    }
+
+    if (has_op(req, COAP_MSG_IF_NONE_MATCH))
+        return reply(resp, COAP_MSG_CLIENT_ERR, COAP_MSG_PRECOND_FAILED, "Precondition Failed");
+
+    if (method != COAP_MSG_GET)
+        return reply(resp, COAP_MSG_CLIENT_ERR, COAP_MSG_METHOD_NOT_ALLOWED, "Method Not Allowed");
+
+    return reply(resp, COAP_MSG_SUCCESS, COAP_MSG_CONTENT, RESOURCE_PAYLOAD);
 }
 
 int fc_server_init(void)

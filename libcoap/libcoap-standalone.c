@@ -19,6 +19,8 @@
 #define COAP_RESOURCE_SAFE_REQUEST_HANDLER 0
 #endif
 
+#define RESOURCE_PAYLOAD "Hello World"
+
 static int response_received_flag = 0;
 
 /* weak no-op for native builds; socket model provides strong def under KLEE */
@@ -29,7 +31,7 @@ static void hnd_get_test(coap_resource_t *resource, coap_session_t *session,
                          const coap_string_t *query COAP_UNUSED,
                          coap_pdu_t *response) {
   coap_pdu_set_code(response, COAP_RESPONSE_CODE_CONTENT);
-  coap_add_data(response, 7, (const uint8_t *)"sharryy");
+  coap_add_data(response, strlen(RESOURCE_PAYLOAD), (const uint8_t *)RESOURCE_PAYLOAD);
   (void)resource;
   (void)session;
   (void)request;
