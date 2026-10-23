@@ -209,10 +209,8 @@ int main(void) {
 
   fprintf(stderr, "[harness] test exchange completed\n");
 
-  coap_session_release(client_session);
-  coap_free_context(client_ctx);
-  coap_free_context(server_ctx);
-  coap_cleanup();
-
+  /* No cleanup: under KLEE all forked states share the real sockets, so freeing the
+   * contexts here would close them for every state still running. */
+  (void)client_session;
   return 0;
 }
