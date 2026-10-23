@@ -47,3 +47,10 @@ int getaddrinfo(const char *node, const char *service,
 }
 
 void freeaddrinfo(struct addrinfo *res) { (void)res; }
+
+/* same as ../libcoap/klee_stubs.c: libcoap's varargs logger is not executable under KLEE */
+typedef int coap_log_t;
+void coap_log_impl(coap_log_t level, const char *format, ...) {
+  (void)level;
+  (void)format;
+}

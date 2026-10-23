@@ -7,6 +7,14 @@
 #include <coap3/coap.h>
 #include "bridge.h"
 
+/* compat shims: builds against libcoap 4.3.1 and 4.3.5 */
+#ifndef COAP_LOG_INFO
+#define COAP_LOG_INFO LOG_INFO
+#endif
+#ifndef COAP_LOG_WARN
+#define COAP_LOG_WARN LOG_WARNING
+#endif
+
 static coap_context_t *client_ctx;
 static coap_session_t *client_session;
 static int response_received_flag = 0;

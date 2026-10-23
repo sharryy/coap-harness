@@ -31,6 +31,9 @@ klee-last
 klee-diff-*/
 klee-dbg-*/
 klee-exp-*/
+klee-pair-*/
+run.stats-shm
+run.stats-wal
 klee-*-check/
 .venv/
 
