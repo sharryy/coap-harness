@@ -45,11 +45,11 @@ static coap_response_t client_response_handler(coap_session_t *session,
   coap_show_pdu(COAP_LOG_INFO, received);
   response_received_flag = 1;
 
-  /* exp 11/14: token-spoof checks (RFC 7252 5.3.2); exp 15: control */
+  /* exp 10/13: token-spoof checks (RFC 7252 5.3.2); exp 14: control */
   {
     const char *exp = getenv("KLEE_SYMBOLIC_EXPERIMENT");
     int e = (exp != NULL) ? atoi(exp) : 0;
-    if (e == 11 || e == 14 || e == 15) {
+    if (e == 10 || e == 13 || e == 14) {
       static const uint8_t sent_token[4] = {0xDE, 0xAD, 0xBE, 0xEF};
       coap_bin_const_t tok = coap_pdu_get_token(received);
       fprintf(stderr,
@@ -64,16 +64,16 @@ static coap_response_t client_response_handler(coap_session_t *session,
       int mismatch = (tok.length != sizeof(sent_token)) ||
                      (memcmp(tok.s, sent_token, sizeof(sent_token)) != 0);
       /* violation only if matched (sent != NULL) but token differs */
-      if (e != 15)
+      if (e != 14)
         assert(!(sent != NULL && mismatch) &&
                "client delivered a response as MATCHED to a request "
                "(sent != NULL) whose token does not match (RFC 7252 "
                "5.3.2; piggybacked-ACK MID-only match, spoofable)");
     }
-    /* exp 17: mid-spoof (dual of exp 11); wrong-MID response should be dropped */
-    if (e == 17) {
+    /* exp 15: mid-spoof (dual of exp 10); wrong-MID response should be dropped */
+    if (e == 15) {
       fprintf(stderr,
-              "[harness] exp17: DELIVERED wrong-MID response  sent=%s type=%d "
+              "[harness] exp15: DELIVERED wrong-MID response  sent=%s type=%d "
               "mid=0x%04x\n",
               sent ? "MATCHED-REQUEST" : "NULL(no-match)",
               coap_pdu_get_type(received), coap_pdu_get_mid(received));

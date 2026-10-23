@@ -14,7 +14,7 @@ a whole is described in the [top-level README](../README.md).
 - `klee_stubs.c` - stubs for the libc calls KLEE's runtime cannot model
   (`getifaddrs`, the clock), linked with `--override` so they win.
 - `Makefile` - builds the linked bitcode and the native binary, and runs KLEE.
-- `run-experiments.sh` - runs the conformance monitors (IDs 1-10) and reports
+- `run-experiments.sh` - runs the conformance monitors (IDs 1-9) and reports
   which ones fired.
 
 ## The libcoap trees used here
@@ -97,8 +97,8 @@ cat demo-exp-1-version/*.assert.err
 ```
 
 Experiment IDs: `1` version, `2` token-length, `3` code, `4` empty-message,
-`6` mid-match, `7` token-match, `8` matching-type, `9` repeatable-options,
-`10` unrecognized-options. (`5` is retired.)
+`5` mid-match, `6` token-match, `7` matching-type, `8` repeatable-options,
+`9` unrecognized-options.
 
 The raw KLEE command behind the runner, if you want to drive it by hand:
 
@@ -116,8 +116,9 @@ Clean up KLEE output between runs with `bash clean.sh`.
 
 ## Watching packets on the wire
 
-The KLEE runs use an in-process socket model and never touch a real socket. The
-native binary does: `make run-native` builds `libcoap-standalone` and runs one
+The KLEE runs use Kleener's socket model, which keeps each path's messages in memory
+but also mirrors every send and receive on a real loopback socket. The native binary
+uses real sockets only: `make run-native` builds `libcoap-standalone` and runs one
 real CoAP exchange on loopback `udp/5683`. To watch it, sniff loopback in one
 terminal and run the exchange in another:
 
@@ -132,9 +133,9 @@ make run-native                        # terminal 2: build + run libcoap-standal
 |----:|---------|:-----:|:-----:|----|
 | 1 | version            | silent | **fire** | #1376 |
 | 3 | code               | silent | **fire** | #1300 |
-| 8 | matching-type      | silent | **fire** | #1295 |
-| 9 | repeatable-options | silent | **fire** | #1389 |
-| 2,4,6,7,10 | (rest)    | silent | silent   | conformant on both |
+| 7 | matching-type      | silent | **fire** | #1295 |
+| 8 | repeatable-options | silent | **fire** | #1389 |
+| 2,4,5,6,9 | (rest)     | silent | silent   | conformant on both |
 
 So 4.3.5 gives 0/9 fired and 4.3.1 gives 4/9. An `.assert.err` in an
 experiment's output dir means the monitor caught the violation; no `.err` means
