@@ -14,7 +14,7 @@ a whole is described in the [top-level README](../README.md).
 - `klee_stubs.c` - stubs for the libc calls KLEE's runtime cannot model
   (`getifaddrs`, the clock), linked with `--override` so they win.
 - `Makefile` - builds the linked bitcode and the native binary, and runs KLEE.
-- `run-experiments.sh` - runs the conformance monitors (IDs 1-9) and reports
+- `run-experiments.sh` - runs the conformance monitors (IDs 1-15) and reports
   which ones fired.
 
 ## The libcoap trees used here

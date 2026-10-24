@@ -41,13 +41,15 @@ EXPERIMENTS=(
     "4:empty-message"
     "5:mid-match"
     "6:token-match"
-    "7:matching-type"
-    "8:repeatable-options"
-    "9:unrecognized-options"
-    "10:token-spoof"
-    "13:separate-token-spoof"
-    "14:separate-token-ok-control"
-    "15:mid-spoof"
+    "7:matching-message-type"
+    "8:repeatable-opts"
+    "9:unrecognized-opts"
+    "10:opt-length"
+    "11:payload-marker"
+    "12:non-type-critical-opt"
+    "13:elective-bad-length"
+    "14:dup-elective-opt"
+    "15:reserved-opt-number"
 )
 
 if [ $# -gt 0 ]; then
