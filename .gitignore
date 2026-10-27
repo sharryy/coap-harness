@@ -11,6 +11,7 @@
 !/differential/
 !/cantcoap/
 !/security/
+!/artifact/
 
 # --- inside the included dirs, never track build output, KLEE run artifacts,
 #     logs, or binaries (regenerable; not meant to be pushed) ---

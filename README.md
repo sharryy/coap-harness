@@ -30,6 +30,10 @@ walk-through of the older per-requirement conformance monitors, read
   FreeCoAP-server harness (the control side) plus `diff.sh`, the runner that
   drives it against `libcoap/` and cross-checks the two.
 - `security/` - native ASan reproducers for the libcoap memory-safety findings.
+- `artifact/` - extras for the paper's Docker artifact: `run-all.sh` runs and
+  cross-checks every experiment on both versions, `stats.py` tabulates the results.
+  Each harness dir (`libcoap/`, `differential/`) has its own `configure.sh` (clones
+  and builds both SUT versions) and `run.sh` (one experiment on one SUT).
 - `Makefile` - `make clean` / `make clean-logs` to wipe run artifacts.
 
 ## Prerequisites

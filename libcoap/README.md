@@ -46,7 +46,7 @@ export LLVM_COMPILER=clang
             --disable-documentation --disable-doxygen --disable-manpages \
             --disable-shared --enable-static --enable-examples CC=wllvm
 make -j$(nproc)
-extract-bc .libs/libcoap-3-notls.a
+extract-bc -b .libs/libcoap-3-notls.a
 ln -sf libcoap-3-notls.a.bc .libs/libcoap-3-notls.bc   # name the harness links against
 ```
 
