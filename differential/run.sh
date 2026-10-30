@@ -20,10 +20,7 @@ function show_help()
     printf "    -h  shows this help \n\n"
 
     printf "experiments are: \n"
-    printf "    code, version, type, token-length, mid, type-code, uri-query-len, token,\n"
-    printf "    opt-len-if-match, opt-len-uri-host, opt-len-if-none-match, opt-len-uri-port,\n"
-    printf "    opt-len-location-path, opt-len-uri-path, opt-len-content-format,\n"
-    printf "    opt-len-max-age, opt-len-accept, opt-len-location-query \n"
+    printf "    code, version, type, token-length, mid, type-code, token \n"
 
     printf "states to check are: \n"
     printf "    SERVER \t {the CoAP server is the SUT} \n"
@@ -59,18 +56,7 @@ case $experiment in
     token-length)           export KLEE_SYMBOLIC_EXPERIMENT=103;;
     mid)                    export KLEE_SYMBOLIC_EXPERIMENT=104;;
     type-code)              export KLEE_SYMBOLIC_EXPERIMENT=105;;
-    uri-query-len)          export KLEE_SYMBOLIC_EXPERIMENT=108;;
     token)                  export KLEE_SYMBOLIC_EXPERIMENT=109;;
-    opt-len-if-match)       export KLEE_SYMBOLIC_EXPERIMENT=110;;
-    opt-len-uri-host)       export KLEE_SYMBOLIC_EXPERIMENT=111;;
-    opt-len-if-none-match)  export KLEE_SYMBOLIC_EXPERIMENT=112;;
-    opt-len-uri-port)       export KLEE_SYMBOLIC_EXPERIMENT=113;;
-    opt-len-location-path)  export KLEE_SYMBOLIC_EXPERIMENT=114;;
-    opt-len-uri-path)       export KLEE_SYMBOLIC_EXPERIMENT=115;;
-    opt-len-content-format) export KLEE_SYMBOLIC_EXPERIMENT=116;;
-    opt-len-max-age)        export KLEE_SYMBOLIC_EXPERIMENT=117;;
-    opt-len-accept)         export KLEE_SYMBOLIC_EXPERIMENT=118;;
-    opt-len-location-query) export KLEE_SYMBOLIC_EXPERIMENT=119;;
     *) echo "Unknown experiment: $experiment (see -h)"; exit 1;;
 esac
 printf "%s (%s)\n" "$experiment" "$KLEE_SYMBOLIC_EXPERIMENT"

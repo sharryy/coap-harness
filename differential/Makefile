@@ -9,7 +9,7 @@ OUTDIR      ?= klee-exp-$(EXP)
 EXTRA       ?=
 
 # Recording monitors (EXP >= 100) need per-path constraints for the offline
-# cross-checker; conformance runs assert in-run and don't.
+# cross-checker.
 WRITE_SMT2  := $(shell [ "$(EXP)" -ge 100 ] 2>/dev/null && echo --write-smt2s)
 
 # Keep libcoap at WARN: at DEBUG it calls coap_show_pdu, which hits an

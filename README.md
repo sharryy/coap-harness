@@ -2,7 +2,7 @@
 
 Testing harnesses for CoAP implementations, built for two related jobs:
 
-1. **Differential and conformance testing** under symbolic execution. A libcoap
+1. **Differential testing** under symbolic execution. A libcoap
    client drives a server (either libcoap itself or FreeCoAP) inside Kleener, a
    monitor turns one field of the request into a symbolic value, and KLEE records
    the server's response on every path it explores. Comparing the two servers'
@@ -13,15 +13,12 @@ Testing harnesses for CoAP implementations, built for two related jobs:
    crash you can run in a second. See [`security/README.md`](security/README.md).
 
 This README covers what you need installed, how the differential pipeline fits
-together, and how to point it at an implementation. If you just want a scripted
-walk-through of the older per-requirement conformance monitors, read
-[`libcoap/README.md`](libcoap/README.md) instead.
+together, and how to point it at an implementation.
 
 ## Layout
 
 - `libcoap/` - single-process libcoap client+server driver. The base side of a
-  differential run, and the target for the conformance monitors and the
-  cross-version (4.3.1 vs 4.3.5) runs.
+  differential run, and the target for the cross-version (4.3.1 vs 4.3.5) runs.
 - `freecoap/` - native FreeCoAP client-and-server round-trip, a standalone
   sanity demo (no KLEE).
 - `cantcoap/` - a cantcoap reference harness, kept for completeness. Not part of
@@ -95,7 +92,7 @@ satisfiable. A satisfiable answer is a concrete request on which the two servers
 respond differently. The divergence report lands in
 `differential/diff-exp<ID>.log`.
 
-The recording monitors currently registered:
+The recording monitors:
 
 | ID | Field made symbolic | Notes |
 |----|---------------------|-------|
@@ -105,6 +102,7 @@ The recording monitors currently registered:
 | 103 | token length | the TKL nibble |
 | 104 | message ID | plus type, since the echo obligation depends on it |
 | 105 | type and code together | the joint header-acceptance matrix; subsumes 102 |
+| 109 | token | the four token bytes; the response token is recorded |
 
 To compare libcoap against an older libcoap instead of against FreeCoAP, point the
 base side at the other version and tag the output so it does not collide:

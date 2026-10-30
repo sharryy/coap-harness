@@ -5,10 +5,7 @@ set -uo pipefail
 H="$(cd "$(dirname "$0")/.." && pwd)"
 RES="$(mkdir -p "${1:-results}" && cd "${1:-results}" && pwd)"
 shift || true
-EXPERIMENTS="${*:-code version type token-length mid type-code token uri-query-len
-  opt-len-if-match opt-len-uri-host opt-len-if-none-match opt-len-uri-port
-  opt-len-location-path opt-len-uri-path opt-len-content-format opt-len-max-age
-  opt-len-accept opt-len-location-query}"
+EXPERIMENTS="${*:-code version type token-length mid type-code token}"
 CHECKER="${CHECKER:-/artifact/tools/smt-cross-checker-coap/main.py}"
 
 # run.sh in harness dir $1, then move its output dir to $RES/$2
