@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
-# Run every experiment on LibCoAP and FreeCoAP for both versions, cross-check each pair, print the statistics.
-# usage: run-all.sh [results-dir] [experiment...]   (env: VERSIONS, CHECKER, PYTHON)
+# Run the experiments on LibCoAP and FreeCoAP for both versions, cross-check each pair, print the statistics.
+# usage: run-all.sh [--with-options] [results-dir] [experiment...]   (env: VERSIONS, CHECKER, PYTHON)
 set -uo pipefail
 H="$(cd "$(dirname "$0")/.." && pwd)"
-RES="$(mkdir -p "${1:-results}" && cd "${1:-results}" && pwd)"
-shift || true
-EXPERIMENTS="${*:-code version type token-length mid type-code token opt-number dup-opt uri-query-len
+BASE="code version type token-length mid type-code token"
+OPTIONS="opt-number dup-opt uri-query-len
   opt-len-if-match opt-len-uri-host opt-len-if-none-match opt-len-uri-port
   opt-len-location-path opt-len-uri-path opt-len-content-format opt-len-max-age
-  opt-len-accept opt-len-location-query}"
+  opt-len-accept opt-len-location-query"
+WITH_OPTIONS=0
+args=()
+for a in "$@"; do
+  if [ "$a" = --with-options ]; then WITH_OPTIONS=1; else args+=("$a"); fi
+done
+set -- ${args[@]+"${args[@]}"}
+RES="$(mkdir -p "${1:-results}" && cd "${1:-results}" && pwd)"
+shift || true
+# an explicit experiment list wins; otherwise the paper's seven, plus the option experiments with --with-options
+if [ $# -gt 0 ]; then EXPERIMENTS="$*"
+elif [ $WITH_OPTIONS = 1 ]; then EXPERIMENTS="$BASE $OPTIONS"
+else EXPERIMENTS="$BASE"; fi
 CHECKER="${CHECKER:-/artifact/tools/smt-cross-checker-coap/main.py}"
 
 # run.sh in harness dir $1, then move its output dir to $RES/$2
