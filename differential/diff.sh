@@ -4,7 +4,7 @@ set -euo pipefail
 
 EXP="${1:-}"
 if [ -z "$EXP" ]; then
-    echo "usage: $0 <EXP-id>   (100=code 101=version 102=type 103=token_length 104=mid 105=type+code 109=token)" >&2
+    echo "usage: $0 <EXP-id>   (100=code 101=version 102=type 103=token_length 104=mid 105=type+code 106=opt-number 107=dup-opt 108=uri-query-len 109=token 110-119=opt-len)" >&2
     exit 2
 fi
 

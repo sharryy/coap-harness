@@ -102,7 +102,11 @@ The recording monitors:
 | 103 | token length | the TKL nibble |
 | 104 | message ID | plus type, since the echo obligation depends on it |
 | 105 | type and code together | the joint header-acceptance matrix; subsumes 102 |
+| 106 | option number | one option appended, value 0x01 |
+| 107 | option number, repeated | the same option appended twice |
+| 108 | Uri-Query length | 0..255 |
 | 109 | token | the four token bytes; the response token is recorded |
+| 110-119 | option length | one option appended, length 0..255, one ID per option |
 
 To compare libcoap against an older libcoap instead of against FreeCoAP, point the
 base side at the other version and tag the output so it does not collide:
